@@ -41,3 +41,9 @@ body {
   outline-offset: 3px;
   border-radius: 4px;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
