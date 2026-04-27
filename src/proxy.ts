@@ -7,6 +7,11 @@ export async function proxy(req: NextRequest) {
   const sessionCookie = req.cookies.get('eh-admin-session')?.value
   const session = await decrypt(sessionCookie)
 
+  if (path === '/admin' || path === '/admin/') {
+    const dest = session?.userId ? '/admin/dashboard' : '/admin/login'
+    return NextResponse.redirect(new URL(dest, req.nextUrl))
+  }
+
   if (path === '/admin/login') {
     if (session?.userId) {
       return NextResponse.redirect(new URL('/admin/dashboard', req.nextUrl))
@@ -22,5 +27,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*'],
 }
