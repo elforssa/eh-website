@@ -9,10 +9,10 @@ export async function loginAction(
   prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const email = (formData.get('email') as string)?.trim()
+  const password = (formData.get('password') as string)?.trim()
 
-  if (!email?.trim() || !password?.trim()) {
+  if (!email || !password) {
     return { error: 'Veuillez remplir tous les champs.' }
   }
 

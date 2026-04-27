@@ -136,7 +136,7 @@ export function ReceiptForm() {
   }
 
   return (
-    <div className="max-w-3xl bg-white rounded-xl border border-surface-active p-8">
+    <div className="max-w-3xl bg-white rounded-xl border border-surface-active p-4 sm:p-8">
       {error && (
         <div className="mb-6 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
@@ -146,7 +146,7 @@ export function ReceiptForm() {
       {/* Header fields */}
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Reçu</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Date *</label>
             <input type="date" className={inputClass} value={form.date} onChange={e => set('date', e.target.value)} />
@@ -157,8 +157,8 @@ export function ReceiptForm() {
       {/* DONNÉES D'INSCRIPTION */}
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Données d&apos;inscription</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 sm:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-1">
             <label className={labelClass}>Nom et prénom *</label>
             <input type="text" className={inputClass} value={form.nom_prenom} onChange={e => set('nom_prenom', e.target.value)} placeholder="ex. Karim Benali" />
           </div>
@@ -201,7 +201,7 @@ export function ReceiptForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Niveau *</label>
               <div className="flex flex-wrap gap-2">
@@ -227,7 +227,7 @@ export function ReceiptForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className={labelClass}>Date de début</label>
               <input type="date" className={inputClass} value={form.date_debut} onChange={e => set('date_debut', e.target.value)} />
@@ -248,7 +248,7 @@ export function ReceiptForm() {
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Détails de paiement</h2>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Montant total du cours (MAD) *</label>
               <input

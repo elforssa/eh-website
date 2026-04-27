@@ -20,7 +20,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-navy-deep">Reçus de paiement</h1>
           <p className="text-sm text-gray-500 mt-1">{list.length} reçu{list.length !== 1 ? 's' : ''} enregistré{list.length !== 1 ? 's' : ''}</p>
@@ -45,7 +45,8 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-surface-active overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="bg-surface border-b border-surface-active">
                 <th className="text-left px-5 py-3 font-semibold text-navy-deep">N° Reçu</th>
@@ -79,6 +80,7 @@ export default async function DashboardPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

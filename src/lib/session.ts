@@ -32,7 +32,7 @@ export async function createSession(userId: string): Promise<void> {
     secure: process.env.NODE_ENV === 'production',
     expires: expiresAt,
     sameSite: 'lax',
-    path: '/',
+    path: '/admin',
   })
 }
 

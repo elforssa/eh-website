@@ -27,7 +27,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 no-print">
         <Link href="/admin/dashboard" className="text-sm text-navy-primary hover:underline">
           ← Retour au tableau de bord
         </Link>
@@ -35,7 +35,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Printable receipt HTML preview */}
-      <div id="receipt-print" className="bg-white rounded-xl border border-surface-active max-w-3xl mx-auto overflow-hidden text-sm">
+      <div id="receipt-print" className="bg-white rounded-xl border border-surface-active max-w-3xl mx-auto overflow-x-auto text-sm">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -71,7 +71,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           {/* DONNÉES D'INSCRIPTION */}
           <section>
             <h2 className="text-xs font-bold tracking-widest text-navy-primary uppercase border-b border-navy-primary pb-1 mb-3">Données d&apos;inscription</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="border-b border-gray-200 pb-2">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Nom et prénom</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.nom_prenom}</p>
@@ -94,7 +94,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
           {/* DÉTAILS DU COURS */}
           <section>
             <h2 className="text-xs font-bold tracking-widest text-navy-primary uppercase border-b border-navy-primary pb-1 mb-3">Détails du cours</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="border-b border-gray-200 pb-2">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Type de cours</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.type_cours}</p>
@@ -141,7 +141,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             </div>
             <div className="mt-3">
               <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">Mode de paiement</p>
-              <div className="flex gap-6">
+              <div className="flex flex-wrap gap-4">
                 {(['Espèces', 'Carte bancaire', 'Virement', 'Chèque'] as const).map(m => (
                   <div key={m} className="flex items-center gap-1.5">
                     <div className={`w-4 h-4 border rounded flex items-center justify-center ${receipt.mode_paiement === m ? 'border-navy-deep bg-navy-deep' : 'border-gray-300'}`}>
