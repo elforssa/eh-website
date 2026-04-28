@@ -89,13 +89,20 @@ export async function POST(req: Request) {
   const supabase = supabaseAdmin()
   const year = new Date().getFullYear()
 
-  const { count } = await supabase
+  const { data: maxData } = await supabase
     .from('receipts')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', `${year}-01-01`)
-    .lte('created_at', `${year}-12-31T23:59:59`)
+    .select('receipt_number')
+    .like('receipt_number', `EH-${year}-%`)
+    .order('receipt_number', { ascending: false })
+    .limit(1)
 
-  const receipt_number = generateReceiptNumber(year, (count ?? 0) + 1)
+  let nextNum = 1
+  if (maxData?.[0]?.receipt_number) {
+    const lastNum = parseInt(maxData[0].receipt_number.split('-')[2], 10)
+    if (!isNaN(lastNum)) nextNum = lastNum + 1
+  }
+
+  const receipt_number = generateReceiptNumber(year, nextNum)
 
   const { data, error } = await supabase
     .from('receipts')
