@@ -39,4 +39,6 @@ export async function createSession(userId: string): Promise<void> {
 export async function deleteSession(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
+  // Also clear any legacy cookie that may have been set with path=/admin
+  cookieStore.set(COOKIE_NAME, '', { expires: new Date(0), path: '/admin' })
 }
