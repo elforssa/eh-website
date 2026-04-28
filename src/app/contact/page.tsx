@@ -48,7 +48,7 @@ export default function ContactPage() {
                   </a>
                   <p className="text-gray-500 text-sm mt-1">Lun–Dim : 9h – 20h</p>
                   <a
-                    href="https://wa.me/212687347926"
+                    href="https://wa.me/212664239091"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-full transition-colors"
