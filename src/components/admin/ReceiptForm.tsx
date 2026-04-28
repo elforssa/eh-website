@@ -6,7 +6,12 @@ import type { TypeCours, Niveau, ModePaiement, Receipt } from '@/types/receipt'
 
 const PDFDownloadButton = dynamic(
   () => import('@/components/admin/PDFDownloadButton').then(m => m.PDFDownloadButton),
-  { ssr: false, loading: () => <button className="px-5 py-2.5 text-sm bg-surface border border-surface-active rounded-lg text-gray-400" disabled>Chargement PDF...</button> }
+  { ssr: false, loading: () => <button className="px-5 py-2.5 text-sm bg-surface border border-surface-active rounded-lg text-gray-400" disabled>Chargement...</button> }
+)
+
+const PDFPrintButton = dynamic(
+  () => import('@/components/admin/PDFPrintButton').then(m => m.PDFPrintButton),
+  { ssr: false, loading: () => <button className="px-5 py-2.5 text-sm bg-surface border border-surface-active rounded-lg text-gray-400" disabled>Chargement...</button> }
 )
 
 const TYPE_COURS: TypeCours[] = ['Enfants', 'Ados', 'Adultes', 'Business', 'Particulier']
@@ -118,6 +123,7 @@ export function ReceiptForm() {
         </div>
         <div className="flex gap-3 flex-wrap">
           <PDFDownloadButton receipt={savedReceipt} />
+          <PDFPrintButton receipt={savedReceipt} />
           <button
             onClick={() => router.push(`/admin/receipts/${savedReceipt.id}`)}
             className="px-5 py-2.5 text-sm font-medium border border-surface-active rounded-lg text-navy-deep hover:bg-surface transition-colors"

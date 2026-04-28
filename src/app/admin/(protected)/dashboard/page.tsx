@@ -2,6 +2,7 @@ import { verifySession } from '@/lib/dal'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import type { Receipt } from '@/types/receipt'
+import { DeleteReceiptButton } from '@/components/admin/DeleteReceiptButton'
 
 export default async function DashboardPage() {
   await verifySession()
@@ -67,13 +68,16 @@ export default async function DashboardPage() {
                     <td className="px-5 py-3 text-gray-500">{new Date(r.date).toLocaleDateString('fr-FR')}</td>
                     <td className="px-5 py-3 text-right font-medium text-green-700">{Number(r.montant_paye).toLocaleString('fr-FR')} MAD</td>
                     <td className="px-5 py-3 text-right font-medium text-red-accent">{restant.toLocaleString('fr-FR')} MAD</td>
-                    <td className="px-5 py-3 text-right">
-                      <Link
-                        href={`/admin/receipts/${r.id}`}
-                        className="text-navy-primary hover:underline font-medium"
-                      >
-                        Voir →
-                      </Link>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-3">
+                        <DeleteReceiptButton id={r.id} receiptNumber={r.receipt_number} />
+                        <Link
+                          href={`/admin/receipts/${r.id}`}
+                          className="text-navy-primary hover:underline font-medium whitespace-nowrap"
+                        >
+                          Voir →
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 )

@@ -35,3 +35,24 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   return NextResponse.json({ receipt: data })
 }
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!(await requireAuth())) {
+    return NextResponse.json({ error: 'Non autorisé.' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await supabase.from('receipts').delete().eq('id', id)
+
+  if (error) {
+    return NextResponse.json({ error: 'Erreur lors de la suppression.' }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
