@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import type { TypeCours, Niveau, ModePaiement, Receipt } from '@/types/receipt'
+import type { TypeCours, Niveau, ModePaiement, Formule, Receipt } from '@/types/receipt'
 
 const PDFDownloadButton = dynamic(
   () => import('@/components/admin/PDFDownloadButton').then(m => m.PDFDownloadButton),
@@ -14,8 +14,9 @@ const PDFPrintButton = dynamic(
   { ssr: false, loading: () => <button className="px-5 py-2.5 text-sm bg-surface border border-surface-active rounded-lg text-gray-400" disabled>Chargement...</button> }
 )
 
-const TYPE_COURS: TypeCours[] = ['Enfants', 'Ados', 'Adultes', 'Business', 'Particulier']
-const NIVEAUX: Niveau[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+const CATEGORIES: TypeCours[] = ['Enfants', 'Ados', 'Adultes', 'Business', 'Particulier', 'Préparation aux examens']
+const NIVEAUX: Niveau[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'CECRL']
+const FORMULES: Formule[] = ['Standard', 'Intensif']
 const MODES: ModePaiement[] = ['Espèces', 'Carte bancaire', 'Virement', 'Chèque']
 
 const today = new Date().toISOString().split('T')[0]
@@ -29,7 +30,7 @@ interface FormState {
   type_cours: TypeCours
   niveau: Niveau
   duree_cours: string
-  date_debut: string
+  formule: Formule
   jours: string
   horaires: string
   montant_total: string
@@ -47,7 +48,7 @@ const defaultForm: FormState = {
   type_cours: 'Adultes',
   niveau: 'A1',
   duree_cours: '',
-  date_debut: '',
+  formule: 'Standard',
   jours: '',
   horaires: '',
   montant_total: '',
@@ -87,11 +88,11 @@ export function ReceiptForm() {
           montant_total: parseFloat(form.montant_total),
           montant_paye: parseFloat(form.montant_paye),
           date_naissance: form.date_naissance || null,
-          date_debut: form.date_debut || null,
           email: form.email || null,
           jours: form.jours || null,
           horaires: form.horaires || null,
           observation: form.observation || null,
+          date_debut: null,
         }),
       })
       const data = await res.json()
@@ -149,7 +150,7 @@ export function ReceiptForm() {
         </div>
       )}
 
-      {/* Header fields */}
+      {/* REÇU */}
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Reçu</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -164,7 +165,7 @@ export function ReceiptForm() {
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Données d&apos;inscription</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="sm:col-span-1">
+          <div>
             <label className={labelClass}>Nom et prénom *</label>
             <input type="text" className={inputClass} value={form.nom_prenom} onChange={e => set('nom_prenom', e.target.value)} placeholder="ex. Karim Benali" />
           </div>
@@ -187,10 +188,12 @@ export function ReceiptForm() {
       <div className={sectionClass}>
         <h2 className={sectionTitleClass}>Détails du cours</h2>
         <div className="space-y-4">
+
+          {/* Catégorie */}
           <div>
-            <label className={labelClass}>Type de cours *</label>
+            <label className={labelClass}>Catégorie *</label>
             <div className="flex flex-wrap gap-2">
-              {TYPE_COURS.map(t => (
+              {CATEGORIES.map(t => (
                 <button
                   key={t}
                   type="button"
@@ -208,8 +211,9 @@ export function ReceiptForm() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Niveau */}
             <div>
-              <label className={labelClass}>Niveau *</label>
+              <label className={labelClass}>Niveau (CECRL) *</label>
               <div className="flex flex-wrap gap-2">
                 {NIVEAUX.map(n => (
                   <button
@@ -227,6 +231,7 @@ export function ReceiptForm() {
                 ))}
               </div>
             </div>
+            {/* Durée */}
             <div>
               <label className={labelClass}>Durée du cours * (h/mois)</label>
               <input type="text" className={inputClass} value={form.duree_cours} onChange={e => set('duree_cours', e.target.value)} placeholder="ex. 20h/mois" />
@@ -234,17 +239,35 @@ export function ReceiptForm() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Type de cours (Standard / Intensif) */}
             <div>
-              <label className={labelClass}>Date de début</label>
-              <input type="date" className={inputClass} value={form.date_debut} onChange={e => set('date_debut', e.target.value)} />
+              <label className={labelClass}>Type de cours *</label>
+              <div className="flex gap-2">
+                {FORMULES.map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => set('formule', f)}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      form.formule === f
+                        ? 'bg-navy-deep text-white border-navy-deep'
+                        : 'bg-white text-gray-600 border-surface-active hover:border-navy-primary'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
+            {/* Jours */}
             <div>
               <label className={labelClass}>Jours</label>
               <input type="text" className={inputClass} value={form.jours} onChange={e => set('jours', e.target.value)} placeholder="ex. Lun, Mer, Ven" />
             </div>
+            {/* Plage horaire */}
             <div>
-              <label className={labelClass}>Horaires</label>
-              <input type="text" className={inputClass} value={form.horaires} onChange={e => set('horaires', e.target.value)} placeholder="ex. 18h–19h30" />
+              <label className={labelClass}>Plage horaire</label>
+              <input type="text" className={inputClass} value={form.horaires} onChange={e => set('horaires', e.target.value)} placeholder="ex. 18h – 19h30" />
             </div>
           </div>
         </div>

@@ -156,7 +156,7 @@ function CheckItem({ selected, label }: { selected: boolean; label: string }) {
   )
 }
 
-function Field({ label, value, flex }: { label: string; value?: string; flex?: number }) {
+function Field({ label, value, flex }: { label: string; value?: string | null; flex?: number }) {
   return (
     <View style={[s.fieldWrap, flex !== undefined ? { flex } : {}]}>
       <Text style={s.fieldLabel}>{label}</Text>
@@ -167,12 +167,13 @@ function Field({ label, value, flex }: { label: string; value?: string; flex?: n
 
 export function ReceiptDocument({ receipt, logoUrl }: { receipt: Receipt; logoUrl: string }) {
   const restant = Number(receipt.montant_total) - Number(receipt.montant_paye)
-  const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
+  const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString('fr-FR') : '—'
   const fmtNum = (n: number) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   const modePaiements: ModePaiement[] = ['Espèces', 'Carte bancaire', 'Virement', 'Chèque']
-  const typeCours = ['Enfants', 'Ados', 'Adultes', 'Business', 'Particulier']
-  const niveaux = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+  const categories = ['Enfants', 'Ados', 'Adultes', 'Business', 'Particulier', 'Préparation aux examens']
+  const niveaux = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'CECRL']
+  const formules = ['Standard', 'Intensif']
 
   return (
     <Document>
@@ -227,19 +228,19 @@ export function ReceiptDocument({ receipt, logoUrl }: { receipt: Receipt; logoUr
           <View style={s.section}>
             <Text style={s.sectionTitle}>Détails du cours</Text>
 
-            {/* TYPE DE COURS — full dedicated row */}
+            {/* CATÉGORIE — full dedicated row */}
             <View style={s.checkGroupWrap}>
-              <Text style={s.checkGroupLabel}>TYPE DE COURS</Text>
+              <Text style={s.checkGroupLabel}>CATÉGORIE</Text>
               <View style={s.checkRow}>
-                {typeCours.map(t => (
+                {categories.map(t => (
                   <CheckItem key={t} label={t} selected={receipt.type_cours === t} />
                 ))}
               </View>
             </View>
 
-            {/* NIVEAU — full dedicated row */}
+            {/* NIVEAU (CECRL) — full dedicated row */}
             <View style={s.checkGroupWrap}>
-              <Text style={s.checkGroupLabel}>NIVEAU</Text>
+              <Text style={s.checkGroupLabel}>NIVEAU (CECRL)</Text>
               <View style={s.checkRow}>
                 {niveaux.map(n => (
                   <CheckItem key={n} label={n} selected={receipt.niveau === n} />
@@ -247,11 +248,20 @@ export function ReceiptDocument({ receipt, logoUrl }: { receipt: Receipt; logoUr
               </View>
             </View>
 
+            {/* TYPE DE COURS — Standard / Intensif */}
+            <View style={s.checkGroupWrap}>
+              <Text style={s.checkGroupLabel}>TYPE DE COURS</Text>
+              <View style={s.checkRow}>
+                {formules.map(f => (
+                  <CheckItem key={f} label={f} selected={receipt.formule === f} />
+                ))}
+              </View>
+            </View>
+
             <View style={s.row3}>
               <Field label="DURÉE DU COURS" value={receipt.duree_cours} />
-              <Field label="DATE DE DÉBUT" value={fmtDate(receipt.date_debut)} />
               <Field label="JOURS" value={receipt.jours} />
-              <Field label="HORAIRES" value={receipt.horaires} />
+              <Field label="PLAGE HORAIRE" value={receipt.horaires} />
             </View>
           </View>
 

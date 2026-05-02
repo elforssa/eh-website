@@ -96,11 +96,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
             <h2 className="text-xs font-bold tracking-widest text-navy-primary uppercase border-b border-navy-primary pb-1 mb-3">Détails du cours</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="border-b border-gray-200 pb-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Type de cours</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Catégorie</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.type_cours}</p>
               </div>
               <div className="border-b border-gray-200 pb-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Niveau</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Niveau (CECRL)</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.niveau}</p>
               </div>
               <div className="border-b border-gray-200 pb-2">
@@ -108,15 +108,15 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
                 <p className="font-medium text-gray-800 mt-1">{receipt.duree_cours}</p>
               </div>
               <div className="border-b border-gray-200 pb-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Date de début</p>
-                <p className="font-medium text-gray-800 mt-1">{receipt.date_debut ? new Date(receipt.date_debut).toLocaleDateString('fr-FR') : '—'}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Type de cours</p>
+                <p className="font-medium text-gray-800 mt-1">{receipt.formule || '—'}</p>
               </div>
               <div className="border-b border-gray-200 pb-2">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider">Jours</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.jours || '—'}</p>
               </div>
               <div className="border-b border-gray-200 pb-2">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Horaires</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">Plage horaire</p>
                 <p className="font-medium text-gray-800 mt-1">{receipt.horaires || '—'}</p>
               </div>
             </div>
