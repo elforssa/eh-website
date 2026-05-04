@@ -17,6 +17,7 @@ import { decrypt } from '@/lib/session'
     type_cours      text not null,
     niveau          text not null,
     duree_cours     text not null,
+    formule         text,
     date_debut      date,
     jours           text,
     horaires        text,
@@ -26,6 +27,9 @@ import { decrypt } from '@/lib/session'
     observation     text,
     created_at      timestamptz default now()
   );
+
+  -- If the table already exists, run this to add the missing column:
+  -- alter table receipts add column if not exists formule text;
 
   alter table receipts enable row level security;
   create policy "Admin only" on receipts for all using (auth.role() = 'authenticated');
@@ -106,7 +110,25 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase
     .from('receipts')
-    .insert([{ ...body, receipt_number }])
+    .insert([{
+      receipt_number,
+      date: body.date,
+      nom_prenom: body.nom_prenom,
+      telephone: body.telephone,
+      email: body.email ?? null,
+      date_naissance: body.date_naissance ?? null,
+      type_cours: body.type_cours,
+      niveau: body.niveau,
+      duree_cours: body.duree_cours,
+      formule: body.formule ?? null,
+      date_debut: body.date_debut ?? null,
+      jours: body.jours ?? null,
+      horaires: body.horaires ?? null,
+      montant_total: body.montant_total,
+      montant_paye: body.montant_paye,
+      mode_paiement: body.mode_paiement,
+      observation: body.observation ?? null,
+    }])
     .select()
     .single()
 
