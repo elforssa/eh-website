@@ -69,7 +69,7 @@ export default function TermsPage() {
               <p>
                 Pour toute question relative à ces conditions, contactez-nous à{" "}
                 <a href="mailto:contact@english-hills.com" className="text-navy-primary underline">contact@english-hills.com</a>{" "}
-                ou au <a href="tel:+212687347926" className="text-navy-primary underline">+212 6 87 34 79 26</a>.
+                ou au <a href="tel:+212664239091" className="text-navy-primary underline">+212 6 64 23 90 91</a>.
               </p>
             </section>
           </div>

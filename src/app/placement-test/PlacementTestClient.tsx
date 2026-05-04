@@ -202,7 +202,7 @@ export default function PlacementTestClient() {
                       onChange={handleChange}
                       aria-required="true"
                       className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy focus:border-navy outline-none transition-colors"
-                      placeholder="+212 6 87 34 79 26"
+                      placeholder="+212 6 64 23 90 91"
                     />
                   </div>
                   <div className="space-y-2">
@@ -247,13 +247,13 @@ export default function PlacementTestClient() {
                 ) : slotsError ? (
                   <div role="alert" className="p-6 bg-red-50 rounded-xl border border-red-100 text-center">
                     <p className="text-red-800 font-medium">Impossible de charger les créneaux disponibles.</p>
-                    <p className="text-red-600 text-sm mt-1">Contactez-nous directement au <a href="tel:+212687347926" className="underline">+212 6 87 34 79 26</a>.</p>
+                    <p className="text-red-600 text-sm mt-1">Contactez-nous directement au <a href="tel:+212664239091" className="underline">+212 6 64 23 90 91</a>.</p>
                   </div>
                 ) : availableDates.length === 0 ? (
                   <div className="p-8 bg-orange-50 rounded-xl border border-orange-100 text-center">
                     <Calendar className="w-8 h-8 text-orange-400 mx-auto mb-3" aria-hidden="true" />
                     <p className="text-orange-800 font-medium">Aucun créneau disponible pour le moment.</p>
-                    <p className="text-orange-600 text-sm mt-1">Contactez-nous au <a href="tel:+212687347926" className="underline">+212 6 87 34 79 26</a> pour convenir d&apos;une date.</p>
+                    <p className="text-orange-600 text-sm mt-1">Contactez-nous au <a href="tel:+212664239091" className="underline">+212 6 64 23 90 91</a> pour convenir d&apos;une date.</p>
                   </div>
                 ) : (
                   <>

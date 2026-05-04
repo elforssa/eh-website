@@ -78,7 +78,7 @@ export function Footer() {
                 <a href="mailto:contact@english-hills.com" className="hover:text-white transition-colors">contact@english-hills.com</a>
               </li>
               <li>
-                <a href="tel:+212687347926" className="hover:text-white transition-colors">+212 6 87 34 79 26</a>
+                <a href="tel:+212664239091" className="hover:text-white transition-colors">+212 6 64 23 90 91</a>
               </li>
               <li>Almaz 2, Hills Business Center<br/>Bâtiment B, Bureau 6<br/>Casablanca</li>
             </ul>
