@@ -6,10 +6,6 @@ import Link from "next/link";
 
 const faqs = [
   {
-    question: "Comment savoir quel niveau correspond à moi ou à mon enfant ?",
-    answer: "Nous proposons un test de positionnement gratuit et complet, qui évalue aussi bien les compétences écrites qu'orales. Il garantit que chaque apprenant intègre un groupe parfaitement adapté à son niveau actuel et à ses objectifs."
-  },
-  {
     question: "Les supports National Geographic sont-ils inclus dans les frais ?",
     answer: "Pour les programmes Enfants & Juniors, les frais annuels sont entièrement tout-compris (matériel, ressources numériques, suivi pédagogique). Pour les cours adultes, des frais uniques de matériel couvrent vos supports originaux National Geographic et l'accès aux plateformes numériques interactives."
   },
@@ -42,9 +38,12 @@ export default function Home() {
                 Là où la technologie de pointe rencontre l&apos;apprentissage par projets — pour un anglais captivant, efficace et vraiment fun, à tout âge.
               </p>
               <div className="flex flex-col sm:flex-row gap-6">
-                <Button href="/placement-test" variant="primary-red" className="text-lg px-8 py-4 rounded-full">
-                  S&apos;inscrire
-                </Button>
+                <a
+                  href="https://admin.english-hills.com/inscription"
+                  className="inline-flex items-center justify-center font-medium rounded-full text-lg px-8 py-4 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+                >
+                  S&apos;inscrire maintenant
+                </a>
                 <Button href="#programs" variant="secondary-navy" className="text-lg px-8 py-4 rounded-full">
                   Nos programmes
                 </Button>
@@ -224,7 +223,7 @@ export default function Home() {
                 <div className="mb-6 mt-auto">
                   <span className="text-xl font-bold text-foreground">Tarif sur demande</span>
                 </div>
-                <Button href="/placement-test" variant="secondary-navy" className="w-full rounded-full mt-auto">Voir le programme</Button>
+                <Button href="/programs/general-english" variant="secondary-navy" className="w-full rounded-full mt-auto">Voir le programme</Button>
               </div>
 
               <div className="border border-navy-primary/10 p-10 rounded-3xl hover:-translate-y-1 hover:border-navy-primary/30 hover:shadow-[0_20px_40px_-15px_var(--color-navy-primary)] transition-all bg-surface-soft flex flex-col">
@@ -349,12 +348,11 @@ export default function Home() {
             <div className="absolute top-[30px] left-[30px] right-[30px] h-0.5 bg-gray-100 hidden md:block" />
             <div className="absolute top-[30px] bottom-[30px] left-[30px] w-0.5 bg-gray-100 md:hidden" />
 
-            <div className="grid md:grid-cols-4 gap-12 relative z-10">
+            <div className="grid md:grid-cols-3 gap-12 relative z-10">
               {[
-                { num: "01", title: "Test de niveau", desc: "Un bilan rapide et bienveillant pour identifier votre niveau actuel." },
-                { num: "02", title: "Choisir un programme", desc: "Sélectionner la formation qui correspond à vos objectifs et à votre groupe." },
-                { num: "03", title: "Choisir un créneau", desc: "Parcourir les horaires flexibles disponibles chaque jour de la semaine." },
-                { num: "04", title: "Rejoindre le cours", desc: "Entrer, rencontrer votre groupe et commencer à apprendre." }
+                { num: "01", title: "Choisir un programme", desc: "Sélectionner la formation qui correspond à vos objectifs et à votre groupe." },
+                { num: "02", title: "Choisir un créneau", desc: "Parcourir les horaires flexibles disponibles chaque jour de la semaine." },
+                { num: "03", title: "Rejoindre le cours", desc: "Entrer, rencontrer votre groupe et commencer à apprendre." }
               ].map((step) => (
                 <div key={step.num} className="group relative flex md:flex-col items-start gap-8 md:gap-0">
                   <div className="w-[60px] h-[60px] rounded-full bg-white border-2 border-surface-active shadow-[0_0_0_8px_rgba(255,255,255,1)] flex items-center justify-center text-foreground font-bold text-lg md:mb-8 flex-shrink-0 z-10 transition-all duration-300 group-hover:bg-navy-primary group-hover:text-white group-hover:border-navy-primary">
@@ -371,7 +369,7 @@ export default function Home() {
 
           <div className="flex justify-center mt-20">
             <a
-              href="https://admin.english-hills.com/register"
+              href="https://admin.english-hills.com/inscription"
               className="inline-flex items-center justify-center font-medium rounded-full px-12 py-5 text-xl transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
             >
               S&apos;inscrire maintenant
@@ -437,9 +435,12 @@ export default function Home() {
             Rejoignez une communauté d&apos;apprenants qui découvrent que l&apos;anglais peut être stimulant, libérateur et à portée de main. Avec une technologie de pointe et une méthode qui a fait ses preuves.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button href="/placement-test" variant="primary-red" className="text-xl px-12 py-5 rounded-full">
+            <a
+              href="https://admin.english-hills.com/inscription"
+              className="inline-flex items-center justify-center font-medium rounded-full text-xl px-12 py-5 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+            >
               S&apos;inscrire maintenant
-            </Button>
+            </a>
             <Button href="/contact" variant="secondary-navy" className="text-xl px-12 py-5 rounded-full">
               Nous contacter
             </Button>

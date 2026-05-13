@@ -2,7 +2,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "../ui/Button";
+
+const PUBLIC_FORM_URL = "https://admin.english-hills.com/inscription";
+const ADMIN_LOGIN_URL = "https://admin.english-hills.com";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -97,15 +99,20 @@ export function Header() {
               </Link>
             ))}
           </div>
-          <Button href="/placement-test" variant="primary-red" className="rounded-full">
-            Test de niveau
-          </Button>
-          <a
-            href="https://admin.english-hills.com"
-            className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
-          >
-            Se connecter
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href={PUBLIC_FORM_URL}
+              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 border-2 border-navy-primary text-navy-primary bg-transparent hover:bg-navy-primary hover:text-white"
+            >
+              S&apos;inscrire
+            </a>
+            <a
+              href={ADMIN_LOGIN_URL}
+              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+            >
+              Se connecter
+            </a>
+          </div>
         </nav>
 
         {/* Mobile Menu Toggle */}
@@ -166,16 +173,22 @@ export function Header() {
             ))}
           </div>
 
-          <Button href="/placement-test" variant="primary-red" className="w-full py-4 text-lg rounded-full">
-            Test de niveau
-          </Button>
-          <a
-            href="https://admin.english-hills.com"
-            className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Se connecter
-          </a>
+          <div className="flex flex-col gap-3">
+            <a
+              href={PUBLIC_FORM_URL}
+              className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 border-2 border-navy-primary text-navy-primary bg-transparent hover:bg-navy-primary hover:text-white"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              S&apos;inscrire
+            </a>
+            <a
+              href={ADMIN_LOGIN_URL}
+              className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Se connecter
+            </a>
+          </div>
         </div>
       )}
     </header>

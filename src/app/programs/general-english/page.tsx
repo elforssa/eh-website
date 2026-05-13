@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,7 +30,7 @@ export default function GeneralEnglishPage() {
 
               <h3 className="text-xl font-bold text-navy mb-3">À qui s&apos;adresse ce programme ?</h3>
               <p className="text-gray-600 leading-relaxed">
-                Aux adultes (18 ans et +) de tous niveaux — des vrais débutants aux locuteurs avancés qui souhaitent entretenir ou affiner leur anglais. Votre niveau est évalué lors du test de positionnement afin de vous placer dans le groupe optimal.
+                Aux adultes (18 ans et +) de tous niveaux — des vrais débutants aux locuteurs avancés qui souhaitent entretenir ou affiner leur anglais.
               </p>
             </section>
 
@@ -69,9 +68,12 @@ export default function GeneralEnglishPage() {
                 </div>
               </div>
 
-              <Button href="/placement-test" variant="primary-red" className="w-full">
+              <a
+                href="https://admin.english-hills.com/inscription"
+                className="inline-flex items-center justify-center font-medium rounded-lg px-6 py-3 w-full transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+              >
                 S&apos;inscrire
-              </Button>
+              </a>
             </div>
           </div>
         </div>

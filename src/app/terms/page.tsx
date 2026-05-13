@@ -17,7 +17,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-3">1. Inscription aux programmes</h2>
               <p>
-                En vous inscrivant chez English Hills Language Center, vous acceptez de respecter nos politiques internes. L&apos;inscription est soumise à la réussite du test de positionnement (le cas échéant) et à la disponibilité des places. Le test de niveau est gratuit et ne vous engage en rien.
+                En vous inscrivant chez English Hills Language Center, vous acceptez de respecter nos politiques internes. L&apos;inscription est soumise à la disponibilité des places.
               </p>
             </section>
 

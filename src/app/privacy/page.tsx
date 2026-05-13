@@ -17,7 +17,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-3">1. Données collectées</h2>
               <p>
-                English Hills Language Center collecte les informations personnelles que vous nous fournissez volontairement lors d&apos;une réservation de test de niveau, d&apos;un formulaire de contact ou d&apos;une inscription à un programme. Il peut s&apos;agir de votre nom, adresse e-mail, numéro de téléphone et de tout objectif ou préférence que vous nous communiquez.
+                English Hills Language Center collecte les informations personnelles que vous nous fournissez volontairement lors d&apos;un formulaire de contact ou d&apos;une inscription à un programme. Il peut s&apos;agir de votre nom, adresse e-mail, numéro de téléphone et de tout objectif ou préférence que vous nous communiquez.
               </p>
             </section>
 
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-bold text-foreground mb-3">2. Utilisation de vos données</h2>
               <p>Nous utilisons les informations collectées pour :</p>
               <ul className="list-disc list-inside space-y-1 mt-2">
-                <li>Planifier et confirmer les tests de niveau et les rendez-vous d&apos;inscription</li>
+                <li>Planifier et confirmer les rendez-vous d&apos;inscription</li>
                 <li>Vous placer dans le groupe anglais correspondant à votre niveau</li>
                 <li>Vous communiquer les mises à jour d&apos;horaires, les nouveautés et les rappels de cours</li>
                 <li>Répondre à vos demandes</li>

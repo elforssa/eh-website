@@ -18,10 +18,6 @@ export default function FAQPage() {
       answer: "Au lieu des examens écrits classiques, nos apprenants progressent en faisant. Vous réalisez des projets concrets, des présentations et des tâches collaboratives qui garantissent une vraie production langagière — pas une mémorisation passive."
     },
     {
-      question: "Comment savoir quel niveau correspond à moi ou à mon enfant ?",
-      answer: "Nous proposons un test de positionnement gratuit et complet, qui évalue aussi bien les compétences écrites qu'orales. Il garantit que chaque apprenant intègre un groupe parfaitement adapté à son niveau actuel et à ses objectifs."
-    },
-    {
       question: "Les supports National Geographic sont-ils inclus dans les frais ?",
       answer: "Pour les programmes Enfants & Juniors, les frais annuels sont entièrement tout-compris : matériel, ressources numériques et suivi pédagogique. Pour les cours adultes, des frais uniques de matériel couvrent vos supports originaux National Geographic et l'accès aux plateformes interactives."
     },

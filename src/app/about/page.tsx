@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import type { Metadata } from "next";
 import Image from "next/image";
 
@@ -46,9 +45,12 @@ export default function AboutPage() {
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Que vous soyez un professionnel du couloir d&apos;affaires de Casablanca ou un jeune apprenant qui commence son parcours, votre place est ici.
           </p>
-          <Button href="/placement-test" variant="primary-red" className="text-lg px-8 py-4">
-            Réserver un test de niveau
-          </Button>
+          <a
+            href="https://admin.english-hills.com/inscription"
+            className="inline-flex items-center justify-center font-medium rounded-lg text-lg px-8 py-4 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+          >
+            S&apos;inscrire maintenant
+          </a>
         </div>
 
       </div>

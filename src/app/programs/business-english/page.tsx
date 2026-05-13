@@ -59,13 +59,13 @@ export default function BusinessEnglishPage() {
             <div className="bg-surface rounded-2xl p-6 border border-gray-200 sticky top-24">
               <h3 className="text-2xl font-bold mb-4 text-navy">Par où commencer ?</h3>
               <p className="text-sm text-gray-600 mb-6">
-                Les besoins en Business English étant très spécifiques, on commence toujours par une consultation et un test de positionnement.
+                Les besoins en Business English étant très spécifiques, on commence toujours par une consultation initiale.
               </p>
 
               <div className="space-y-4 mb-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-bold text-navy text-sm mb-1">Étape 1</h4>
-                  <p className="text-gray-600 text-sm">Test de niveau et consultation initiale</p>
+                  <p className="text-gray-600 text-sm">Consultation initiale</p>
                 </div>
                 <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                   <h4 className="font-bold text-navy text-sm mb-1">Étape 2</h4>
@@ -77,9 +77,12 @@ export default function BusinessEnglishPage() {
                 </div>
               </div>
 
-              <Button href="/placement-test" variant="primary-red" className="w-full">
-                Test individuel
-              </Button>
+              <a
+                href="https://admin.english-hills.com/inscription"
+                className="inline-flex items-center justify-center font-medium rounded-lg px-6 py-3 w-full transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+              >
+                S&apos;inscrire
+              </a>
             </div>
           </div>
         </div>

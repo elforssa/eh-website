@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/Button";
-import { CheckCircle2, Rocket, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle2, Rocket } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -48,7 +46,12 @@ export default function KidsProgramsPage() {
               <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" /><span className="text-gray-600">Accès aux plateformes numériques</span></li>
             </ul>
 
-            <Button href="/placement-test" variant="secondary-navy" className="w-full rounded-full py-4">S&apos;inscrire en Standard</Button>
+            <a
+              href="https://admin.english-hills.com/inscription"
+              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-4 w-full transition-colors duration-200 bg-transparent border-2 border-navy-primary text-navy-primary hover:bg-navy-primary hover:text-white shadow-sm"
+            >
+              S&apos;inscrire en Standard
+            </a>
           </div>
 
           {/* Formule Intensive */}
@@ -75,7 +78,12 @@ export default function KidsProgramsPage() {
               <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" /><span className="text-gray-300">Progression plus rapide entre les modules</span></li>
             </ul>
 
-            <Button href="/placement-test" variant="primary-red" className="w-full rounded-full py-4 text-white">S&apos;inscrire en Intensif</Button>
+            <a
+              href="https://admin.english-hills.com/inscription"
+              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-4 w-full text-white transition-colors duration-200 bg-red-accent hover:bg-red-accent/90 shadow-sm"
+            >
+              S&apos;inscrire en Intensif
+            </a>
           </div>
 
         </div>
@@ -101,16 +109,6 @@ export default function KidsProgramsPage() {
               </p>
             </div>
           </div>
-        </div>
-
-        <div className="text-center max-w-2xl mx-auto">
-          <h3 className="text-2xl font-bold text-foreground mb-4">Vous hésitez entre les deux formules ?</h3>
-          <p className="text-gray-500 mb-8">
-            Chaque enfant commence par un test de niveau pour évaluer précisément où il en est et recommander la formule la mieux adaptée à son profil.
-          </p>
-          <Link href="/placement-test" className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
-            Réserver un test de niveau <ArrowRight className="w-5 h-5" aria-hidden="true" />
-          </Link>
         </div>
 
       </div>
