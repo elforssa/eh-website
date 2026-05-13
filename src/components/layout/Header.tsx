@@ -100,6 +100,12 @@ export function Header() {
           <Button href="/placement-test" variant="primary-red" className="rounded-full">
             Test de niveau
           </Button>
+          <a
+            href="https://admin.english-hills.com"
+            className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+          >
+            Se connecter
+          </a>
         </nav>
 
         {/* Mobile Menu Toggle */}
@@ -163,6 +169,13 @@ export function Header() {
           <Button href="/placement-test" variant="primary-red" className="w-full py-4 text-lg rounded-full">
             Test de niveau
           </Button>
+          <a
+            href="https://admin.english-hills.com"
+            className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Se connecter
+          </a>
         </div>
       )}
     </header>

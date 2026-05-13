@@ -368,6 +368,15 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          <div className="flex justify-center mt-20">
+            <a
+              href="https://admin.english-hills.com/register"
+              className="inline-flex items-center justify-center font-medium rounded-full px-12 py-5 text-xl transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+            >
+              S&apos;inscrire maintenant
+            </a>
+          </div>
         </div>
       </section>
 
