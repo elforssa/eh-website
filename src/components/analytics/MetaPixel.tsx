@@ -23,6 +23,7 @@ export function MetaPixel() {
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${pixelId}');
+          fbq('track', 'PageView');
         `}
       </Script>
       <Suspense fallback={null}>
@@ -45,7 +46,11 @@ export function MetaPixel() {
 function MetaPageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const lastTrackedPath = useRef("");
+  const lastTrackedPath = useRef(
+    typeof window === "undefined"
+      ? ""
+      : `${window.location.pathname}${window.location.search}`,
+  );
 
   useEffect(() => {
     if (!pixelId) return;
