@@ -34,7 +34,18 @@ export default function EnglishCasablancaLandingPage() {
       <section className="relative overflow-hidden border-b border-gray-200 bg-white">
         <div className="absolute inset-x-0 top-0 h-2 bg-[linear-gradient(90deg,var(--red-accent),var(--navy-primary),#1f8a70)]" aria-hidden="true" />
 
-        <div className="container mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-10 md:px-6 md:pb-20 lg:grid-cols-[1fr_460px] lg:items-center lg:gap-16">
+        <div className="container mx-auto max-w-7xl px-4 pt-8 md:px-6">
+          <Image
+            src="/eh-logo-new.png"
+            alt="English Hills"
+            width={220}
+            height={88}
+            className="h-12 w-auto object-contain md:h-14"
+            priority
+          />
+        </div>
+
+        <div className="container mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-8 md:px-6 md:pb-20 lg:grid-cols-[1fr_460px] lg:items-center lg:gap-16">
           <div className="relative z-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-navy-primary/15 bg-navy-primary/5 px-4 py-2 text-sm font-bold text-navy-primary">
               <MapPin className="h-4 w-4" aria-hidden="true" />

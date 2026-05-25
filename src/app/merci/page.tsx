@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2, MessageCircle, PhoneCall } from "lucide-react";
 import { ThankYouTracker } from "@/components/ui/ThankYouTracker";
@@ -30,6 +31,17 @@ export default async function MerciPage({ searchParams }: MerciPageProps) {
       <ThankYouTracker leadId={leadId} token={token} />
 
       <div className="container mx-auto max-w-3xl px-4 md:px-6">
+        <div className="mb-8 flex justify-center">
+          <Image
+            src="/eh-logo-new.png"
+            alt="English Hills"
+            width={220}
+            height={88}
+            className="h-12 w-auto object-contain md:h-14"
+            priority
+          />
+        </div>
+
         <div className="rounded-[1.75rem] border border-gray-200 bg-white p-8 text-center shadow-2xl shadow-navy-primary/10 md:p-12">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <CheckCircle2 className="h-9 w-9 text-green-700" aria-hidden="true" />
