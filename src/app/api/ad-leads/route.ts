@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 /*
@@ -76,6 +77,11 @@ type Attribution = Partial<Record<
   string
 >>;
 
+type MetaTracking = {
+  fbp?: string;
+  fbc?: string;
+};
+
 const maxTextLength = 500;
 
 function cleanText(value: unknown, maxLength = maxTextLength) {
@@ -110,7 +116,128 @@ function cleanAttribution(value: unknown): Attribution {
   };
 }
 
-export async function POST(req: Request) {
+function cleanMetaTracking(value: unknown): MetaTracking {
+  if (!value || typeof value !== "object") return {};
+  const raw = value as Record<string, unknown>;
+
+  return {
+    fbp: cleanOptionalText(raw.fbp, 1000) || undefined,
+    fbc: cleanOptionalText(raw.fbc, 1000) || undefined,
+  };
+}
+
+function hashMetaValue(value: string) {
+  return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
+}
+
+function normalizePhone(value: string) {
+  return value.replace(/[^\d+]/g, "");
+}
+
+function getClientIp(req: NextRequest) {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0]?.trim();
+
+  return req.headers.get("x-real-ip") || undefined;
+}
+
+function buildFbc(fbclid?: string) {
+  if (!fbclid) return undefined;
+  return `fb.1.${Date.now()}.${fbclid}`;
+}
+
+async function sendMetaLeadEvent({
+  req,
+  leadId,
+  name,
+  phone,
+  email,
+  learnerType,
+  programInterest,
+  attribution,
+  metaTracking,
+}: {
+  req: NextRequest;
+  leadId: string;
+  name: string;
+  phone: string;
+  email: string;
+  learnerType: string;
+  programInterest: string;
+  attribution: Attribution;
+  metaTracking: MetaTracking;
+}) {
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+
+  if (!pixelId || !accessToken) return;
+
+  const firstName = name.split(/\s+/)[0] || "";
+  const lastName = name.split(/\s+/).slice(1).join(" ");
+  const userAgent = req.headers.get("user-agent") || undefined;
+  const eventSourceUrl = attribution.form_page || attribution.landing_page || req.nextUrl.origin;
+  const fbp = metaTracking.fbp || req.cookies.get("_fbp")?.value;
+  const fbc = metaTracking.fbc || req.cookies.get("_fbc")?.value || buildFbc(attribution.fbclid);
+  const graphVersion = process.env.META_GRAPH_API_VERSION || "v23.0";
+  const testEventCode = process.env.META_TEST_EVENT_CODE;
+  const payload = {
+    data: [
+      {
+        event_name: "Lead",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: leadId,
+        action_source: "website",
+        event_source_url: eventSourceUrl,
+        user_data: {
+          em: [hashMetaValue(email)],
+          ph: phone ? [hashMetaValue(normalizePhone(phone))] : undefined,
+          fn: firstName ? [hashMetaValue(firstName)] : undefined,
+          ln: lastName ? [hashMetaValue(lastName)] : undefined,
+          client_ip_address: getClientIp(req),
+          client_user_agent: userAgent,
+          fbp,
+          fbc,
+        },
+        custom_data: {
+          content_name: programInterest,
+          content_category: learnerType,
+          lead_source: attribution.utm_source || "website",
+          campaign_id: attribution.utm_campaign,
+          campaign_name: attribution.utm_campaign_name,
+          adset_id: attribution.utm_adset,
+          adset_name: attribution.utm_adset_name,
+          ad_id: attribution.utm_content,
+          ad_name: attribution.utm_ad_name,
+          placement: attribution.placement,
+        },
+      },
+    ],
+    ...(testEventCode ? { test_event_code: testEventCode } : {}),
+  };
+
+  try {
+    const res = await fetch(`https://graph.facebook.com/${graphVersion}/${pixelId}/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...payload,
+        access_token: accessToken,
+      }),
+    });
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error("Meta CAPI Lead error:", result);
+      return;
+    }
+
+    console.info("Meta CAPI Lead sent:", result);
+  } catch (error) {
+    console.error("Meta CAPI Lead request failed:", error);
+  }
+}
+
+export async function POST(req: NextRequest) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -128,6 +255,7 @@ export async function POST(req: Request) {
     const locationConfirmed = body.locationConfirmed === true;
     const website = cleanText(body.website);
     const attribution = cleanAttribution(body.attribution);
+    const metaTracking = cleanMetaTracking(body.metaTracking);
 
     if (website) {
       return NextResponse.json({ success: true });
@@ -172,6 +300,18 @@ export async function POST(req: Request) {
       console.error("Ad lead insert error:", error);
       return NextResponse.json({ error: "Failed to send request. Please try again." }, { status: 500 });
     }
+
+    await sendMetaLeadEvent({
+      req,
+      leadId: data.id,
+      name,
+      phone,
+      email,
+      learnerType,
+      programInterest,
+      attribution,
+      metaTracking,
+    });
 
     return NextResponse.json({
       success: true,

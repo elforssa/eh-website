@@ -30,7 +30,7 @@ export default async function MerciPage({ searchParams }: MerciPageProps) {
   return (
     <div className="bg-[#fbfcff] py-16 md:py-24">
       <ThankYouTracker leadId={leadId} token={token} />
-      <MetaLeadEvent />
+      <MetaLeadEvent eventId={leadId} />
 
       <div className="container mx-auto max-w-3xl px-4 md:px-6">
         <div className="mb-8 flex justify-center">

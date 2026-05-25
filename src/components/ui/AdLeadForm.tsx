@@ -31,6 +31,11 @@ type AttributionState = {
   referrer?: string;
 };
 
+type MetaTrackingState = {
+  fbp?: string;
+  fbc?: string;
+};
+
 const initialForm: LeadFormState = {
   name: "",
   phone: "",
@@ -92,6 +97,32 @@ function readAttribution(): AttributionState {
   return attribution;
 }
 
+function readCookie(name: string) {
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`))
+    ?.split("=")
+    .slice(1)
+    .join("=");
+}
+
+function readMetaTracking(attribution: AttributionState): MetaTrackingState {
+  const fbp = readCookie("_fbp");
+  const fbcFromCookie = readCookie("_fbc");
+
+  if (fbcFromCookie || !attribution.fbclid) {
+    return {
+      fbp,
+      fbc: fbcFromCookie,
+    };
+  }
+
+  return {
+    fbp,
+    fbc: `fb.1.${Date.now()}.${attribution.fbclid}`,
+  };
+}
+
 export function AdLeadForm() {
   const router = useRouter();
   const [form, setForm] = useState<LeadFormState>(initialForm);
@@ -142,7 +173,11 @@ export function AdLeadForm() {
       const res = await fetch("/api/ad-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, attribution }),
+        body: JSON.stringify({
+          ...form,
+          attribution,
+          metaTracking: readMetaTracking(attribution),
+        }),
       });
 
       const data = await res.json();
