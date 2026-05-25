@@ -11,6 +11,7 @@ import { createClient } from "@supabase/supabase-js";
     email text not null,
     learner_type text not null,
     program_interest text not null,
+    location_confirmed boolean not null default false,
     utm_source text,
     utm_medium text,
     utm_campaign text,
@@ -47,6 +48,7 @@ import { createClient } from "@supabase/supabase-js";
     add column if not exists utm_adset_name text,
     add column if not exists utm_ad_name text,
     add column if not exists placement text,
+    add column if not exists location_confirmed boolean not null default false,
     add column if not exists thank_you_token uuid default gen_random_uuid(),
     add column if not exists thank_you_viewed_at timestamptz;
 
@@ -123,6 +125,7 @@ export async function POST(req: Request) {
     const email = cleanText(body.email).toLowerCase();
     const learnerType = cleanText(body.learnerType);
     const programInterest = cleanText(body.programInterest);
+    const locationConfirmed = body.locationConfirmed === true;
     const website = cleanText(body.website);
     const attribution = cleanAttribution(body.attribution);
 
@@ -130,7 +133,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    if (!name || !phone || !email || !learnerType || !programInterest) {
+    if (!name || !phone || !email || !learnerType || !programInterest || !locationConfirmed) {
       return NextResponse.json({ error: "All required fields must be filled in." }, { status: 400 });
     }
 
@@ -146,6 +149,7 @@ export async function POST(req: Request) {
       email,
       learner_type: learnerType,
       program_interest: programInterest,
+      location_confirmed: locationConfirmed,
       utm_source: attribution.utm_source || null,
       utm_medium: attribution.utm_medium || null,
       utm_campaign: attribution.utm_campaign || null,

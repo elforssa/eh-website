@@ -10,6 +10,7 @@ type LeadFormState = {
   email: string;
   learnerType: string;
   programInterest: string;
+  locationConfirmed: boolean;
   website: string;
 };
 
@@ -36,6 +37,7 @@ const initialForm: LeadFormState = {
   email: "",
   learnerType: "",
   programInterest: "",
+  locationConfirmed: false,
   website: "",
 };
 
@@ -113,6 +115,9 @@ export function AdLeadForm() {
     }
     if (!form.learnerType.trim()) nextErrors.learnerType = "Veuillez choisir pour qui est la formation.";
     if (!form.programInterest.trim()) nextErrors.programInterest = "Veuillez choisir un programme.";
+    if (!form.locationConfirmed) {
+      nextErrors.locationConfirmed = "Veuillez confirmer que l'emplacement à Almaz 2, Casablanca vous convient.";
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -120,7 +125,8 @@ export function AdLeadForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setForm((current) => ({ ...current, [id]: value }));
+    const nextValue = e.target instanceof HTMLInputElement && e.target.type === "checkbox" ? e.target.checked : value;
+    setForm((current) => ({ ...current, [id]: nextValue }));
     if (errors[id as keyof LeadFormState]) {
       setErrors((current) => ({ ...current, [id]: undefined }));
     }
@@ -270,6 +276,28 @@ export function AdLeadForm() {
           </select>
           {errors.programInterest && <p id="ad-lead-program-error" className="text-xs font-medium text-red-600">{errors.programInterest}</p>}
         </div>
+      </div>
+
+      <div className={`rounded-2xl border p-4 ${errors.locationConfirmed ? "border-red-300 bg-red-50" : "border-navy-primary/15 bg-navy-primary/5"}`}>
+        <label htmlFor="locationConfirmed" className="flex cursor-pointer items-start gap-3 text-sm font-semibold leading-6 text-navy-deep">
+          <input
+            id="locationConfirmed"
+            type="checkbox"
+            checked={form.locationConfirmed}
+            onChange={handleChange}
+            aria-required="true"
+            aria-describedby={errors.locationConfirmed ? "ad-lead-location-error" : undefined}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-navy-primary focus:ring-navy-primary"
+          />
+          <span>
+            Je confirme que l&apos;emplacement à Almaz 2, Casablanca me convient. <span aria-hidden="true">*</span>
+          </span>
+        </label>
+        {errors.locationConfirmed && (
+          <p id="ad-lead-location-error" className="mt-2 pl-7 text-xs font-medium text-red-600">
+            {errors.locationConfirmed}
+          </p>
+        )}
       </div>
 
       {serverError && (
