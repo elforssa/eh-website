@@ -3,12 +3,7 @@
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
-
-declare global {
-  interface Window {
-    fbq?: (...args: unknown[]) => void;
-  }
-}
+import { trackMetaEvent } from "./metaPixelEvents";
 
 const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -53,7 +48,7 @@ function MetaPageViewTracker() {
   const lastTrackedPath = useRef("");
 
   useEffect(() => {
-    if (!pixelId || typeof window.fbq !== "function") return;
+    if (!pixelId) return;
 
     const query = searchParams.toString();
     const currentPath = query ? `${pathname}?${query}` : pathname;
@@ -61,7 +56,7 @@ function MetaPageViewTracker() {
     if (lastTrackedPath.current === currentPath) return;
     lastTrackedPath.current = currentPath;
 
-    window.fbq("track", "PageView");
+    trackMetaEvent("PageView");
   }, [pathname, searchParams]);
 
   return null;
