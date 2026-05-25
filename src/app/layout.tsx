@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PublicShell } from "@/components/layout/PublicShell";
 import { Analytics } from "@vercel/analytics/next";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <PublicShell>{children}</PublicShell>
         <Analytics />
+        <MetaPixel />
       </body>
     </html>
   );
