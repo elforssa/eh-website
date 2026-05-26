@@ -195,26 +195,20 @@ async function getGoogleAccessToken() {
 }
 
 async function appendLeadToGoogleSheet({
-  leadId,
   name,
   phone,
   email,
   learnerType,
   programInterest,
-  locationConfirmed,
-  attribution,
 }: {
-  leadId: string;
   name: string;
   phone: string;
   email: string;
   learnerType: string;
   programInterest: string;
-  locationConfirmed: boolean;
-  attribution: Attribution;
 }) {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const sheetRange = process.env.GOOGLE_SHEETS_RANGE || "Leads!A:V";
+  const sheetRange = process.env.GOOGLE_SHEETS_RANGE || "Leads!A:E";
 
   if (!spreadsheetId) return;
 
@@ -223,28 +217,11 @@ async function appendLeadToGoogleSheet({
     if (!accessToken) return;
 
     const row = [
-      new Date().toISOString(),
-      leadId,
       name,
       phone,
       email,
       learnerType,
       programInterest,
-      locationConfirmed ? "Oui" : "Non",
-      attribution.utm_source || "",
-      attribution.utm_medium || "",
-      attribution.utm_campaign || "",
-      attribution.utm_campaign_name || "",
-      attribution.utm_adset || "",
-      attribution.utm_adset_name || "",
-      attribution.utm_content || "",
-      attribution.utm_ad_name || "",
-      attribution.utm_term || "",
-      attribution.placement || "",
-      attribution.fbclid || "",
-      attribution.landing_page || "",
-      attribution.form_page || "",
-      attribution.referrer || "",
     ];
     const encodedRange = encodeURIComponent(sheetRange);
     const res = await fetch(
@@ -439,14 +416,11 @@ export async function POST(req: NextRequest) {
     });
 
     await appendLeadToGoogleSheet({
-      leadId: data.id,
       name,
       phone,
       email,
       learnerType,
       programInterest,
-      locationConfirmed,
-      attribution,
     });
 
     return NextResponse.json({
