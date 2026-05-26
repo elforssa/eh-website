@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createSign } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -144,6 +144,131 @@ function getClientIp(req: NextRequest) {
 function buildFbc(fbclid?: string) {
   if (!fbclid) return undefined;
   return `fb.1.${Date.now()}.${fbclid}`;
+}
+
+function base64UrlEncode(value: string) {
+  return Buffer.from(value)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function getGooglePrivateKey() {
+  return process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, "\n");
+}
+
+async function getGoogleAccessToken() {
+  const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
+  const privateKey = getGooglePrivateKey();
+
+  if (!clientEmail || !privateKey) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64UrlEncode(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claim = base64UrlEncode(JSON.stringify({
+    iss: clientEmail,
+    scope: "https://www.googleapis.com/auth/spreadsheets",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now,
+  }));
+  const unsignedJwt = `${header}.${claim}`;
+  const signature = createSign("RSA-SHA256").update(unsignedJwt).sign(privateKey, "base64url");
+
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: `${unsignedJwt}.${signature}`,
+    }),
+  });
+  const result = await res.json();
+
+  if (!res.ok) {
+    console.error("Google Sheets token error:", result);
+    return null;
+  }
+
+  return typeof result.access_token === "string" ? result.access_token : null;
+}
+
+async function appendLeadToGoogleSheet({
+  leadId,
+  name,
+  phone,
+  email,
+  learnerType,
+  programInterest,
+  locationConfirmed,
+  attribution,
+}: {
+  leadId: string;
+  name: string;
+  phone: string;
+  email: string;
+  learnerType: string;
+  programInterest: string;
+  locationConfirmed: boolean;
+  attribution: Attribution;
+}) {
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const sheetRange = process.env.GOOGLE_SHEETS_RANGE || "Leads!A:V";
+
+  if (!spreadsheetId) return;
+
+  try {
+    const accessToken = await getGoogleAccessToken();
+    if (!accessToken) return;
+
+    const row = [
+      new Date().toISOString(),
+      leadId,
+      name,
+      phone,
+      email,
+      learnerType,
+      programInterest,
+      locationConfirmed ? "Oui" : "Non",
+      attribution.utm_source || "",
+      attribution.utm_medium || "",
+      attribution.utm_campaign || "",
+      attribution.utm_campaign_name || "",
+      attribution.utm_adset || "",
+      attribution.utm_adset_name || "",
+      attribution.utm_content || "",
+      attribution.utm_ad_name || "",
+      attribution.utm_term || "",
+      attribution.placement || "",
+      attribution.fbclid || "",
+      attribution.landing_page || "",
+      attribution.form_page || "",
+      attribution.referrer || "",
+    ];
+    const encodedRange = encodeURIComponent(sheetRange);
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ values: [row] }),
+      },
+    );
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error("Google Sheets append error:", result);
+      return;
+    }
+
+    console.info("Google Sheets lead appended:", result.updates?.updatedRange);
+  } catch (error) {
+    console.error("Google Sheets append failed:", error);
+  }
 }
 
 async function sendMetaLeadEvent({
@@ -311,6 +436,17 @@ export async function POST(req: NextRequest) {
       programInterest,
       attribution,
       metaTracking,
+    });
+
+    await appendLeadToGoogleSheet({
+      leadId: data.id,
+      name,
+      phone,
+      email,
+      learnerType,
+      programInterest,
+      locationConfirmed,
+      attribution,
     });
 
     return NextResponse.json({
