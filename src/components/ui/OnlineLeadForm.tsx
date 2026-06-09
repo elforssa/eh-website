@@ -345,7 +345,7 @@ export function OnlineLeadForm() {
         ) : (
           <>
             <CalendarCheck2 className="h-5 w-5" aria-hidden="true" />
-            Recevoir mon plan de cours
+            Réserver mon cours d’essai gratuit
           </>
         )}
       </button>
