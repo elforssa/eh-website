@@ -126,6 +126,10 @@ function cleanMetaTracking(value: unknown): MetaTracking {
   };
 }
 
+function cleanLeadSource(value: unknown) {
+  return cleanOptionalText(value, 100) || "casablanca_landing";
+}
+
 function hashMetaValue(value: string) {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
@@ -256,6 +260,7 @@ async function sendMetaLeadEvent({
   email,
   learnerType,
   programInterest,
+  leadSource,
   attribution,
   metaTracking,
 }: {
@@ -266,6 +271,7 @@ async function sendMetaLeadEvent({
   email: string;
   learnerType: string;
   programInterest: string;
+  leadSource: string;
   attribution: Attribution;
   metaTracking: MetaTracking;
 }) {
@@ -303,7 +309,8 @@ async function sendMetaLeadEvent({
         custom_data: {
           content_name: programInterest,
           content_category: learnerType,
-          lead_source: attribution.utm_source || "website",
+          lead_source: leadSource,
+          traffic_source: attribution.utm_source || "website",
           campaign_id: attribution.utm_campaign,
           campaign_name: attribution.utm_campaign_name,
           adset_id: attribution.utm_adset,
@@ -354,6 +361,10 @@ export async function POST(req: NextRequest) {
     const email = cleanText(body.email).toLowerCase();
     const learnerType = cleanText(body.learnerType);
     const programInterest = cleanText(body.programInterest);
+    const leadSource = cleanLeadSource(body.leadSource);
+    const objective = cleanOptionalText(body.objective);
+    const currentLevel = cleanOptionalText(body.currentLevel);
+    const availability = cleanOptionalText(body.availability);
     const locationConfirmed = body.locationConfirmed === true;
     const website = cleanText(body.website);
     const attribution = cleanAttribution(body.attribution);
@@ -380,6 +391,10 @@ export async function POST(req: NextRequest) {
       learner_type: learnerType,
       program_interest: programInterest,
       location_confirmed: locationConfirmed,
+      lead_source: leadSource,
+      objective,
+      current_level: currentLevel,
+      availability,
       utm_source: attribution.utm_source || null,
       utm_medium: attribution.utm_medium || null,
       utm_campaign: attribution.utm_campaign || null,
@@ -411,6 +426,7 @@ export async function POST(req: NextRequest) {
       email,
       learnerType,
       programInterest,
+      leadSource,
       attribution,
       metaTracking,
     });

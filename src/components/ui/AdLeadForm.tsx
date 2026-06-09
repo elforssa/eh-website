@@ -81,7 +81,7 @@ function readAttribution(): AttributionState {
   const attribution = {
     ...saved,
     ...fromUrl,
-    landing_page: saved.landing_page || window.location.href,
+    landing_page: hasFreshAttribution ? window.location.href : saved.landing_page || window.location.href,
     form_page: window.location.href,
     referrer: saved.referrer || document.referrer || undefined,
   };

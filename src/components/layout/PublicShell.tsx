@@ -6,7 +6,7 @@ import { Footer } from './Footer'
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isFocusedLandingFlow = pathname === "/anglais-casablanca" || pathname === "/merci";
+  const isFocusedLandingFlow = pathname === "/anglais-casablanca" || pathname === "/anglais-en-ligne" || pathname === "/merci";
 
   return (
     <>
