@@ -248,7 +248,7 @@ async function appendLeadToGoogleSheet({
     ];
     const encodedRange = encodeURIComponent(sheetRange);
     const res = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=OVERWRITE`,
       {
         method: "POST",
         headers: {
