@@ -204,15 +204,28 @@ async function appendLeadToGoogleSheet({
   email,
   learnerType,
   programInterest,
+  leadSource,
+  objective,
+  currentLevel,
+  availability,
 }: {
   name: string;
   phone: string;
   email: string;
   learnerType: string;
   programInterest: string;
+  leadSource: string;
+  objective: string | null;
+  currentLevel: string | null;
+  availability: string | null;
 }) {
-  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const sheetRange = process.env.GOOGLE_SHEETS_RANGE || "Leads!A:E";
+  const isOnlineLead = leadSource === "online_landing";
+  const spreadsheetId = isOnlineLead
+    ? process.env.GOOGLE_SHEETS_ONLINE_SPREADSHEET_ID
+    : process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const sheetRange = isOnlineLead
+    ? process.env.GOOGLE_SHEETS_ONLINE_RANGE || "Leads!A:I"
+    : process.env.GOOGLE_SHEETS_RANGE || "Leads!A:E";
 
   if (!spreadsheetId) return;
 
@@ -226,6 +239,12 @@ async function appendLeadToGoogleSheet({
       email,
       learnerType,
       programInterest,
+      ...(isOnlineLead ? [
+        leadSource,
+        objective || "",
+        currentLevel || "",
+        availability || "",
+      ] : []),
     ];
     const encodedRange = encodeURIComponent(sheetRange);
     const res = await fetch(
@@ -437,6 +456,10 @@ export async function POST(req: NextRequest) {
       email,
       learnerType,
       programInterest,
+      leadSource,
+      objective,
+      currentLevel,
+      availability,
     });
 
     return NextResponse.json({
