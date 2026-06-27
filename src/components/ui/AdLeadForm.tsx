@@ -8,8 +8,7 @@ type LeadFormState = {
   name: string;
   phone: string;
   email: string;
-  learnerType: string;
-  programInterest: string;
+  childrenCount: string;
   locationConfirmed: boolean;
   website: string;
 };
@@ -40,8 +39,7 @@ const initialForm: LeadFormState = {
   name: "",
   phone: "",
   email: "",
-  learnerType: "",
-  programInterest: "",
+  childrenCount: "",
   locationConfirmed: false,
   website: "",
 };
@@ -144,8 +142,10 @@ export function AdLeadForm() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = "Veuillez entrer une adresse e-mail valide.";
     }
-    if (!form.learnerType.trim()) nextErrors.learnerType = "Veuillez choisir pour qui est la formation.";
-    if (!form.programInterest.trim()) nextErrors.programInterest = "Veuillez choisir un programme.";
+    const childrenCount = Number(form.childrenCount);
+    if (!form.childrenCount.trim() || !Number.isInteger(childrenCount) || childrenCount < 1) {
+      nextErrors.childrenCount = "Veuillez indiquer le nombre d'enfants.";
+    }
     if (!form.locationConfirmed) {
       nextErrors.locationConfirmed = "Veuillez confirmer que l'emplacement à Almaz 2, Casablanca vous convient.";
     }
@@ -174,7 +174,14 @@ export function AdLeadForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          learnerType: `${form.childrenCount} enfant${form.childrenCount === "1" ? "" : "s"}`,
+          programInterest: "Camp d'été",
+          leadSource: "casablanca_landing",
+          locationConfirmed: form.locationConfirmed,
+          website: form.website,
           attribution,
           metaTracking: readMetaTracking(attribution),
         }),
@@ -268,48 +275,23 @@ export function AdLeadForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="learnerType" className="text-sm font-bold text-navy-deep">
-            Pour qui ? <span aria-hidden="true">*</span>
+          <label htmlFor="childrenCount" className="text-sm font-bold text-navy-deep">
+            Nombre d&apos;enfants <span aria-hidden="true">*</span>
           </label>
-          <select
-            id="learnerType"
-            value={form.learnerType}
+          <input
+            id="childrenCount"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            max="10"
+            value={form.childrenCount}
             onChange={handleChange}
             aria-required="true"
-            aria-describedby={errors.learnerType ? "ad-lead-learner-error" : undefined}
-            className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.learnerType ? "border-red-500" : "border-gray-300"}`}
-          >
-            <option value="">Sélectionner</option>
-            <option>Adulte</option>
-            <option>Enfant / Junior</option>
-            <option>Entreprise</option>
-          </select>
-          {errors.learnerType && <p id="ad-lead-learner-error" className="text-xs font-medium text-red-600">{errors.learnerType}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="programInterest" className="text-sm font-bold text-navy-deep">
-            Programme souhaité <span aria-hidden="true">*</span>
-          </label>
-          <select
-            id="programInterest"
-            value={form.programInterest}
-            onChange={handleChange}
-            aria-required="true"
-            aria-describedby={errors.programInterest ? "ad-lead-program-error" : undefined}
-            className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.programInterest ? "border-red-500" : "border-gray-300"}`}
-          >
-            <option value="">Sélectionner</option>
-            <option>Anglais général</option>
-            <option>Business English</option>
-            <option>Enfants & Juniors</option>
-            <option>Préparation IELTS / TOEFL</option>
-            <option>Formation courte intensive</option>
-            <option>Camp d&apos;été</option>
-            <option>Cours particuliers</option>
-            <option>Programme personnalisé</option>
-          </select>
-          {errors.programInterest && <p id="ad-lead-program-error" className="text-xs font-medium text-red-600">{errors.programInterest}</p>}
+            aria-describedby={errors.childrenCount ? "ad-lead-children-error" : undefined}
+            className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.childrenCount ? "border-red-500" : "border-gray-300"}`}
+            placeholder="Ex: 2"
+          />
+          {errors.childrenCount && <p id="ad-lead-children-error" className="text-xs font-medium text-red-600">{errors.childrenCount}</p>}
         </div>
       </div>
 
@@ -355,7 +337,7 @@ export function AdLeadForm() {
         ) : (
           <>
             <CalendarCheck2 className="h-5 w-5" aria-hidden="true" />
-            Être rappelé gratuitement
+            Réserver une place au Summer Camp
           </>
         )}
       </button>
