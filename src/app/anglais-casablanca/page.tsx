@@ -112,7 +112,7 @@ export default function EnglishCasablancaLandingPage() {
         <div className="container mx-auto grid max-w-7xl gap-10 px-4 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-surface">
             <Image
-              src="/hero_classroom_students_1775450226096.png"
+              src="/summer-camp-classroom.jpeg"
               alt="Enfants en activité chez English Hills"
               fill
               className="object-cover"
