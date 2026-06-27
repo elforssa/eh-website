@@ -130,6 +130,22 @@ function cleanLeadSource(value: unknown) {
   return cleanOptionalText(value, 100) || "casablanca_landing";
 }
 
+function getSheetColumnCount(range: string) {
+  const columnRange = range.split("!").pop()?.split(":") || [];
+  const endColumn = columnRange[1]?.replace(/\d/g, "");
+  if (!endColumn) return 1;
+
+  return endColumn.split("").reduce((total, char) => total * 26 + char.toUpperCase().charCodeAt(0) - 64, 0);
+}
+
+function getSheetPrefix(range: string) {
+  return range.includes("!") ? `${range.split("!")[0]}!` : "";
+}
+
+function getSheetColumns(range: string) {
+  return range.split("!").pop() || range;
+}
+
 function hashMetaValue(value: string) {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
@@ -220,12 +236,17 @@ async function appendLeadToGoogleSheet({
   availability: string | null;
 }) {
   const isOnlineLead = leadSource === "online_landing";
-  const spreadsheetId = isOnlineLead
-    ? process.env.GOOGLE_SHEETS_ONLINE_SPREADSHEET_ID
-    : process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const sheetRange = isOnlineLead
-    ? process.env.GOOGLE_SHEETS_ONLINE_RANGE || "Leads!A:I"
-    : process.env.GOOGLE_SHEETS_RANGE || "Leads!A:E";
+  const isSummerCampLead = leadSource === "summer_camp_landing";
+  const spreadsheetId = isSummerCampLead
+    ? process.env.GOOGLE_SHEETS_SUMMER_CAMP_SPREADSHEET_ID || "1B4_Wi8uX0CQnnym4ZoHWgrZZ2lSScxOldPrJb0gOIFA"
+    : isOnlineLead
+      ? process.env.GOOGLE_SHEETS_ONLINE_SPREADSHEET_ID
+      : process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const sheetRange = isSummerCampLead
+    ? process.env.GOOGLE_SHEETS_SUMMER_CAMP_RANGE || "A:F"
+    : isOnlineLead
+      ? process.env.GOOGLE_SHEETS_ONLINE_RANGE || "Leads!A:I"
+      : process.env.GOOGLE_SHEETS_RANGE || "Leads!A:E";
 
   if (!spreadsheetId) return;
 
@@ -239,23 +260,45 @@ async function appendLeadToGoogleSheet({
       email,
       learnerType,
       programInterest,
-      ...(isOnlineLead ? [
+      ...(isSummerCampLead ? [
+        leadSource,
+      ] : isOnlineLead ? [
         leadSource,
         objective || "",
         currentLevel || "",
         availability || "",
       ] : []),
     ];
-    const encodedRange = encodeURIComponent(sheetRange);
+    const columnCount = getSheetColumnCount(sheetRange);
+    const rowValues = row.slice(0, columnCount);
+    const sheetPrefix = getSheetPrefix(sheetRange);
+    const lookupRange = encodeURIComponent(`${sheetPrefix}A:A`);
+    const lookupRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${lookupRange}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const lookupResult = await lookupRes.json();
+
+    if (!lookupRes.ok) {
+      console.error("Google Sheets row lookup error:", lookupResult);
+      return;
+    }
+
+    const nextRow = Math.max((lookupResult.values?.length || 0) + 1, 2);
+    const sheetColumns = getSheetColumns(sheetRange);
+    const startColumn = sheetColumns.split(":")[0]?.replace(/\d/g, "") || "A";
+    const endColumn = sheetColumns.split(":")[1]?.replace(/\d/g, "") || "A";
+    const updateRange = encodeURIComponent(`${sheetPrefix}${startColumn}${nextRow}:${endColumn}${nextRow}`);
     const res = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=OVERWRITE`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${updateRange}?valueInputOption=USER_ENTERED`,
       {
-        method: "POST",
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ values: [row] }),
+        body: JSON.stringify({ values: [rowValues] }),
       },
     );
     const result = await res.json();
@@ -265,7 +308,7 @@ async function appendLeadToGoogleSheet({
       return;
     }
 
-    console.info("Google Sheets lead appended:", result.updates?.updatedRange);
+    console.info("Google Sheets lead updated:", result.updatedRange);
   } catch (error) {
     console.error("Google Sheets append failed:", error);
   }

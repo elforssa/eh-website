@@ -179,7 +179,7 @@ export function AdLeadForm() {
           email: form.email,
           learnerType: `${form.childrenCount} enfant${form.childrenCount === "1" ? "" : "s"}`,
           programInterest: "Camp d'été",
-          leadSource: "casablanca_landing",
+          leadSource: "summer_camp_landing",
           locationConfirmed: form.locationConfirmed,
           website: form.website,
           attribution,
