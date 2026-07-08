@@ -154,6 +154,10 @@ function normalizePhone(value: string) {
   return value.replace(/[^\d+]/g, "");
 }
 
+function buildExternalId(email: string, phone: string) {
+  return hashMetaValue(`${email}:${normalizePhone(phone)}`);
+}
+
 function getClientIp(req: NextRequest) {
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0]?.trim();
@@ -348,6 +352,7 @@ async function sendMetaLeadEvent({
   const eventSourceUrl = attribution.form_page || attribution.landing_page || req.nextUrl.origin;
   const fbp = metaTracking.fbp || req.cookies.get("_fbp")?.value;
   const fbc = metaTracking.fbc || req.cookies.get("_fbc")?.value || buildFbc(attribution.fbclid);
+  const externalId = buildExternalId(email, phone);
   const graphVersion = process.env.META_GRAPH_API_VERSION || "v23.0";
   const testEventCode = process.env.META_TEST_EVENT_CODE;
   const payload = {
@@ -363,6 +368,7 @@ async function sendMetaLeadEvent({
           ph: phone ? [hashMetaValue(normalizePhone(phone))] : undefined,
           fn: firstName ? [hashMetaValue(firstName)] : undefined,
           ln: lastName ? [hashMetaValue(lastName)] : undefined,
+          external_id: [externalId],
           client_ip_address: getClientIp(req),
           client_user_agent: userAgent,
           fbp,
