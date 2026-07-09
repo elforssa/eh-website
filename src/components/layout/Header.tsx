@@ -9,7 +9,9 @@ const ADMIN_LOGIN_URL = "https://admin.english-hills.com";
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showPromo, setShowPromo] = useState(true);
+  // Promo banner hidden until we have a current offer to announce.
+  // To re-enable: set this back to `true` and update the message below.
+  const [showPromo, setShowPromo] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
