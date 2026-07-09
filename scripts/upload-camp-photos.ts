@@ -4,7 +4,8 @@
  * Processes a local folder of photos and uploads them to the PRIVATE Supabase
  * Storage bucket `camp-photos` under a session prefix, using the service-role key.
  *
- * For each .jpg/.jpeg/.png:
+ * For each .jpg/.jpeg/.png/.heic (HEIC is detected by magic bytes even when it
+ * carries a .jpg extension, and transcoded to JPEG via macOS `sips` first):
  *   - auto-orient, resize long edge to 1600px (downscale only)
  *   - re-encode JPEG quality 80
  *   - drop ALL metadata (strips EXIF, including GPS coordinates)
@@ -18,11 +19,16 @@
  * .env.local / .env). This is a standalone Node script, not part of the app build.
  */
 
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
+import { tmpdir } from "node:os";
 import { randomBytes } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+
+const execFileAsync = promisify(execFile);
 
 // Load env the same way the app does: .env.local wins, then .env as fallback.
 // Uses Node's built-in env-file loader (no dotenv dependency needed).
@@ -38,8 +44,12 @@ const BUCKET = "camp-photos";
 const LONG_EDGE = 1600;
 const JPEG_QUALITY = 80;
 const CONCURRENCY = 4;
-const ALLOWED_EXT = new Set([".jpg", ".jpeg", ".png"]);
+const ALLOWED_EXT = new Set([".jpg", ".jpeg", ".png", ".heic"]);
 const ID_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+// HEIC/HEIF ftyp brands found at byte offset 4. iPhones frequently export these
+// with a .jpg extension, which sharp cannot decode on macOS.
+const HEIC_BRANDS = new Set(["ftypheic", "ftypheix", "ftypmif1", "ftypmsf1"]);
 
 function fail(msg: string): never {
   console.error(`\x1b[31mError:\x1b[0m ${msg}`);
@@ -58,6 +68,38 @@ function randomId(len = 12): string {
 function normalizePrefix(raw: string): string {
   const trimmed = raw.replace(/^\/+/, "").replace(/\/+$/, "");
   return trimmed ? `${trimmed}/` : "";
+}
+
+/**
+ * Detect HEIC/HEIF by magic bytes rather than extension (iPhones often export
+ * HEIC files with a .jpg name). The ftyp brand sits at byte offset 4.
+ */
+function isHeic(buf: Buffer): boolean {
+  if (buf.length < 12) return false;
+  return HEIC_BRANDS.has(buf.subarray(4, 12).toString("latin1"));
+}
+
+/**
+ * Convert a HEIC file to JPEG using macOS `sips` into `dest`. Throws a clear,
+ * file-named error if `sips` is unavailable (i.e. not on macOS).
+ */
+async function convertHeicWithSips(
+  src: string,
+  dest: string,
+  displayName: string,
+): Promise<void> {
+  try {
+    await execFileAsync("sips", ["-s", "format", "jpeg", src, "--out", dest]);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      throw new Error(
+        `"${displayName}" is a HEIC image and macOS \`sips\` is not available on this system. ` +
+          `Please convert it to JPEG manually and re-run.`,
+      );
+    }
+    throw new Error(`\`sips\` failed to convert HEIC "${displayName}": ${(err as Error).message}`);
+  }
 }
 
 async function main() {
@@ -117,8 +159,17 @@ async function main() {
 
   async function processOne(sourceName: string, index: number) {
     const srcPath = path.join(folder, sourceName);
+    let tempPath: string | null = null;
     try {
-      const input = await readFile(srcPath);
+      let input = await readFile(srcPath);
+
+      // Detect HEIC by content (not extension). sharp can't decode HEIC on macOS,
+      // so transcode to JPEG via `sips` into a temp file first, then feed sharp.
+      if (isHeic(input)) {
+        tempPath = path.join(tmpdir(), `camp-heic-${randomId()}.jpg`);
+        await convertHeicWithSips(srcPath, tempPath, sourceName);
+        input = await readFile(tempPath);
+      }
 
       // Auto-orient from EXIF, downscale to long edge, re-encode, strip metadata.
       // Not calling .withMetadata() means sharp drops EXIF/GPS entirely.
@@ -160,6 +211,9 @@ async function main() {
       console.error(
         `[${index + 1}/${files.length}] FAIL ${sourceName}: ${(err as Error).message}`,
       );
+    } finally {
+      // Always remove the temp JPEG produced from a HEIC source.
+      if (tempPath) await unlink(tempPath).catch(() => {});
     }
   }
 

@@ -1,7 +1,7 @@
 import "server-only";
 
-import Image from "next/image";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { PhotoGrid } from "./PhotoGrid";
 
 const BUCKET = "camp-photos";
 const SIGNED_URL_TTL = 3600; // 1 hour
@@ -125,28 +125,6 @@ function VideoEmbed({ videoId, label }: { videoId: string; label: string }) {
         />
       </div>
     </div>
-  );
-}
-
-function PhotoGrid({ photos, label }: { photos: Photo[]; label: string }) {
-  return (
-    <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-      {photos.map((photo) => (
-        <li
-          key={photo.name}
-          className="group relative aspect-square overflow-hidden rounded-xl border border-camp-navy/10 bg-camp-navy/5 shadow-sm"
-        >
-          <Image
-            src={photo.url}
-            alt={`Photo souvenir — ${label}`}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            loading="lazy"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        </li>
-      ))}
-    </ul>
   );
 }
 
