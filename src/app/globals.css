@@ -28,6 +28,14 @@
   --color-light-gray: var(--surface);
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* Summer-camp gallery (/souvenirs) brand tokens */
+  --color-camp-navy: #1B2A4A;
+  --color-camp-red: #C0392B;
+  --color-camp-gold: #C9A84C;
+  --color-camp-cream: #FAF8F4;
+  --font-camp-serif: var(--font-dm-serif), ui-serif, Georgia, serif;
+  --font-camp-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

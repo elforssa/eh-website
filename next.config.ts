@@ -13,15 +13,26 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://*.supabase.co",
       "connect-src 'self' https://*.supabase.co https://vitals.vercel-insights.com",
       "worker-src blob:",
+      "frame-src https://www.youtube-nocookie.com",
       "frame-ancestors 'none'",
     ].join("; "),
   },
 ];
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        // Private camp-photos bucket served via time-limited signed URLs (see /souvenirs).
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/**",
+      },
+    ],
+  },
   async headers() {
     return [
       {
