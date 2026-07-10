@@ -9,7 +9,9 @@
  *   - auto-orient, resize long edge to 1600px (downscale only)
  *   - re-encode JPEG quality 80
  *   - drop ALL metadata (strips EXIF, including GPS coordinates)
- *   - rename to a random 12-char id + .jpg (original filenames are never kept)
+ *   - rename to a content hash (sha256 of the processed buffer, first 16 hex
+ *     chars) + .jpg, so re-running is idempotent; original filenames are never
+ *     kept
  *
  * Usage:
  *   npx tsx scripts/upload-camp-photos.ts <folder> <prefix>
@@ -22,7 +24,7 @@
 import { readdir, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createClient } from "@supabase/supabase-js";
@@ -179,11 +181,19 @@ async function main() {
         .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
         .toBuffer();
 
-      // Unique random destination name (never reuse original filename).
-      let id = `${randomId()}.jpg`;
-      while (existing.has(id)) id = `${randomId()}.jpg`;
-      existing.add(id);
-      const destPath = `${prefix}${id}`;
+      // Content-addressed name: same source photo → same processed buffer →
+      // same hash → same name, so re-running is idempotent (original filenames
+      // are never kept). NOTE: not reversible for photos already uploaded under
+      // the old random names.
+      const name = `${createHash("sha256").update(output).digest("hex").slice(0, 16)}.jpg`;
+      const destPath = `${prefix}${name}`;
+
+      // Fast path: already present from a prior run (or earlier in this one).
+      if (existing.has(name)) {
+        skipped++;
+        console.log(`[${index + 1}/${files.length}] skip (exists) ${sourceName}`);
+        return;
+      }
 
       const { error } = await supabase.storage.from(BUCKET).upload(destPath, output, {
         contentType: "image/jpeg",
@@ -191,14 +201,17 @@ async function main() {
       });
 
       if (error) {
-        // upsert:false → a name collision reports as already-existing; skip it.
+        // upsert:false → an existing object (e.g. a race with another worker on
+        // an identical photo) reports as already-existing; skip it.
         if (/exist|duplicate|409/i.test(error.message)) {
+          existing.add(name);
           skipped++;
           console.log(`[${index + 1}/${files.length}] skip (exists) ${sourceName}`);
           return;
         }
         throw new Error(error.message);
       }
+      existing.add(name);
 
       uploaded++;
       totalBytes += output.byteLength;
