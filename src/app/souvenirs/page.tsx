@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { hasValidCampAccess } from "./auth";
 import { AccessGate } from "./AccessGate";
+import { SouvenirsBanner } from "./SouvenirsBanner";
 import { Gallery } from "./Gallery";
 
 export const metadata: Metadata = {
@@ -20,5 +21,11 @@ export default async function SouvenirsPage() {
     return <AccessGate />;
   }
 
-  return <Gallery />;
+  // Banner shows only on the authenticated gallery view, never on the gate.
+  return (
+    <>
+      <SouvenirsBanner />
+      <Gallery />
+    </>
+  );
 }
