@@ -1,7 +1,10 @@
 import "server-only";
 
+import { Fragment } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { PhotoGrid } from "./PhotoGrid";
+import { AnnouncementBar } from "./AnnouncementBar";
+import { EnrollmentCTA } from "./EnrollmentCTA";
 
 const BUCKET = "camp-photos";
 const SIGNED_URL_TTL = 3600; // 1 hour
@@ -176,17 +179,21 @@ export async function Gallery() {
           </div>
         ) : (
           <div className="space-y-16">
-            {nonEmpty.map((session) => (
-              <section key={session.id} id={session.id} className="scroll-mt-40">
-                <h2 className="mb-5 font-camp-serif text-2xl text-camp-navy sm:text-3xl">
-                  {session.label}
-                </h2>
-                {session.videoId && (
-                  <VideoEmbed videoId={session.videoId} label={session.label} />
-                )}
-                <PhotoGrid photos={session.photos} label={session.label} />
-              </section>
+            {nonEmpty.map((session, index) => (
+              <Fragment key={session.id}>
+                <section id={session.id} className="scroll-mt-40">
+                  <h2 className="mb-5 font-camp-serif text-2xl text-camp-navy sm:text-3xl">
+                    {session.label}
+                  </h2>
+                  {session.videoId && (
+                    <VideoEmbed videoId={session.videoId} label={session.label} />
+                  )}
+                  <PhotoGrid photos={session.photos} label={session.label} />
+                </section>
+                {index === 0 && <AnnouncementBar />}
+              </Fragment>
             ))}
+            <EnrollmentCTA />
           </div>
         )}
 
