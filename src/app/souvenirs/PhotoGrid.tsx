@@ -56,6 +56,10 @@ export function PhotoGrid({ photos, label }: { photos: Photo[]; label: string })
                 src={photo.url}
                 alt={`Photo souvenir — ${label}`}
                 fill
+                // Photos are pre-resized to 1600px/q80 at upload, so Vercel's
+                // optimizer is redundant. Bypass it (serve the Supabase signed
+                // URL directly) to avoid the Image Optimization quota.
+                unoptimized
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 loading="lazy"
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -122,6 +126,8 @@ export function PhotoGrid({ photos, label }: { photos: Photo[]; label: string })
               src={current.url}
               alt={`Photo souvenir agrandie — ${label}`}
               fill
+              // Same as the grid: bypass Vercel Image Optimization.
+              unoptimized
               sizes="92vw"
               priority
               className="object-contain"
