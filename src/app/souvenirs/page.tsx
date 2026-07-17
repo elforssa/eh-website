@@ -13,12 +13,20 @@ export const metadata: Metadata = {
 // so it is never statically cached.
 export const dynamic = "force-dynamic";
 
-export default async function SouvenirsPage() {
+export default async function SouvenirsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const authorized = await hasValidCampAccess();
 
   if (!authorized) {
     return <AccessGate />;
   }
 
-  return <Gallery />;
+  // ?semaine=<slug> picks a week; absent → the "choose your week" screen.
+  const semaine = (await searchParams).semaine;
+  const selectedSlug = typeof semaine === "string" ? semaine : null;
+
+  return <Gallery selectedSlug={selectedSlug} />;
 }

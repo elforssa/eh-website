@@ -1,8 +1,10 @@
 import "server-only";
 
+import Link from "next/link";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { PhotoGrid } from "./PhotoGrid";
 import { EnrollmentCTA } from "./EnrollmentCTA";
+import { WeekChooser } from "./WeekChooser";
 
 const BUCKET = "camp-photos";
 const SIGNED_URL_TTL = 3600; // 1 hour
@@ -10,7 +12,7 @@ const IMAGE_EXT = /\.(jpe?g|png|webp|gif|avif)$/i;
 
 type CampSession = { prefix: string; label: string; videoId?: string };
 type Photo = { name: string; url: string };
-type LoadedSession = CampSession & { id: string; photos: Photo[] };
+type LoadedSession = CampSession & { slug: string; photos: Photo[] };
 
 /**
  * Parse CAMP_SESSIONS (a JSON array of { prefix, label, videoId? }).
@@ -45,13 +47,14 @@ function parseSessions(): CampSession[] | null {
   }
 }
 
-/** Stable anchor id for a session (index-prefixed to guarantee uniqueness). */
-function sessionAnchor(prefix: string, index: number): string {
-  const slug = prefix
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return `session-${index}-${slug || "sans-nom"}`;
+/** URL-safe slug for a session, used for ?semaine= and the section id. */
+function sessionSlug(prefix: string): string {
+  return (
+    prefix
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "semaine"
+  );
 }
 
 /** Fetch storage objects under one prefix and sign each one (server-side). */
@@ -104,10 +107,18 @@ async function loadSessions(): Promise<LoadedSession[] | null> {
     auth: { persistSession: false },
   });
 
+  // Slugs are assigned up front so duplicates can be disambiguated by index.
+  const used = new Set<string>();
+  const withSlugs = sessions.map((session, index) => {
+    let slug = sessionSlug(session.prefix);
+    if (used.has(slug)) slug = `${slug}-${index + 1}`;
+    used.add(slug);
+    return { ...session, slug };
+  });
+
   return Promise.all(
-    sessions.map(async (session, index) => ({
+    withSlugs.map(async (session) => ({
       ...session,
-      id: sessionAnchor(session.prefix, index),
       photos: await loadPhotos(supabase, session.prefix),
     })),
   );
@@ -129,31 +140,58 @@ function VideoEmbed({ videoId, label }: { videoId: string; label: string }) {
   );
 }
 
-export async function Gallery() {
+/** Sticky bar to switch weeks without going back to the chooser. */
+function WeekSwitcher({
+  sessions,
+  activeSlug,
+}: {
+  sessions: LoadedSession[];
+  activeSlug: string;
+}) {
+  return (
+    <nav
+      aria-label="Semaines du camp"
+      className="sticky top-20 z-30 border-b border-camp-navy/10 bg-camp-cream/95 backdrop-blur-sm"
+    >
+      <ul className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
+        {sessions.map((session) => {
+          const isActive = session.slug === activeSlug;
+          return (
+            <li key={session.slug} className="shrink-0">
+              <Link
+                href={`/souvenirs?semaine=${encodeURIComponent(session.slug)}`}
+                aria-current={isActive ? "page" : undefined}
+                className={`border-b-2 pb-0.5 font-camp-sans text-sm font-medium transition-colors ${
+                  isActive
+                    ? "border-camp-gold text-camp-navy"
+                    : "border-transparent text-camp-navy/70 hover:border-camp-gold hover:text-camp-navy"
+                }`}
+              >
+                {session.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+export async function Gallery({ selectedSlug }: { selectedSlug?: string | null }) {
   const loaded = await loadSessions();
   const nonEmpty = (loaded ?? []).filter((s) => s.photos.length > 0);
 
+  // An unknown ?semaine= falls back to the chooser rather than 404ing.
+  const selected = selectedSlug
+    ? (nonEmpty.find((s) => s.slug === selectedSlug) ?? null)
+    : null;
+  // With a single week there is nothing to choose — show it directly.
+  const active = selected ?? (nonEmpty.length === 1 ? nonEmpty[0]! : null);
+
   return (
     <main className="min-h-[70vh] bg-camp-cream font-camp-sans">
-      {/* Sticky sub-nav: one anchor per non-empty session (hidden when only one). */}
-      {nonEmpty.length > 1 && (
-        <nav
-          aria-label="Semaines du camp"
-          className="sticky top-20 z-30 border-b border-camp-navy/10 bg-camp-cream/95 backdrop-blur-sm"
-        >
-          <ul className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 py-3 sm:px-6 lg:px-8">
-            {nonEmpty.map((session) => (
-              <li key={session.id} className="shrink-0">
-                <a
-                  href={`#${session.id}`}
-                  className="border-b-2 border-transparent pb-0.5 font-camp-sans text-sm font-medium text-camp-navy transition-colors hover:border-camp-gold"
-                >
-                  {session.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+      {active && nonEmpty.length > 1 && (
+        <WeekSwitcher sessions={nonEmpty} activeSlug={active.slug} />
       )}
 
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -175,19 +213,19 @@ export async function Gallery() {
               Revenez très prochainement pour revivre les meilleurs moments du camp.
             </p>
           </div>
+        ) : !active ? (
+          <WeekChooser sessions={nonEmpty} />
         ) : (
           <div className="space-y-16">
-            {nonEmpty.map((session) => (
-              <section key={session.id} id={session.id} className="scroll-mt-40">
-                <h2 className="mb-5 font-camp-serif text-2xl text-camp-navy sm:text-3xl">
-                  {session.label}
-                </h2>
-                {session.videoId && (
-                  <VideoEmbed videoId={session.videoId} label={session.label} />
-                )}
-                <PhotoGrid photos={session.photos} label={session.label} />
-              </section>
-            ))}
+            <section id={active.slug} className="scroll-mt-40">
+              <h2 className="mb-5 font-camp-serif text-2xl text-camp-navy sm:text-3xl">
+                {active.label}
+              </h2>
+              {active.videoId && (
+                <VideoEmbed videoId={active.videoId} label={active.label} />
+              )}
+              <PhotoGrid photos={active.photos} label={active.label} />
+            </section>
             <EnrollmentCTA />
           </div>
         )}
