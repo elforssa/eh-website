@@ -154,8 +154,8 @@ function normalizePhone(value: string) {
   return value.replace(/[^\d+]/g, "");
 }
 
-function buildExternalId(email: string, phone: string) {
-  return hashMetaValue(`${email}:${normalizePhone(phone)}`);
+function buildExternalId(email: string | null, phone: string) {
+  return hashMetaValue(`${email || "no-email"}:${normalizePhone(phone)}`);
 }
 
 function getClientIp(req: NextRequest) {
@@ -241,12 +241,17 @@ async function appendLeadToGoogleSheet({
 }) {
   const isOnlineLead = leadSource === "online_landing";
   const isSummerCampLead = leadSource === "summer_camp_landing";
-  const spreadsheetId = isSummerCampLead
+  const isMiseANiveauLead = leadSource === "mise_a_niveau_landing";
+  const spreadsheetId = isMiseANiveauLead
+    ? process.env.GOOGLE_SHEETS_MISE_A_NIVEAU_SPREADSHEET_ID
+    : isSummerCampLead
     ? process.env.GOOGLE_SHEETS_SUMMER_CAMP_SPREADSHEET_ID || "1B4_Wi8uX0CQnnym4ZoHWgrZZ2lSScxOldPrJb0gOIFA"
     : isOnlineLead
       ? process.env.GOOGLE_SHEETS_ONLINE_SPREADSHEET_ID
       : process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
-  const sheetRange = isSummerCampLead
+  const sheetRange = isMiseANiveauLead
+    ? process.env.GOOGLE_SHEETS_MISE_A_NIVEAU_RANGE || "A:D"
+    : isSummerCampLead
     ? process.env.GOOGLE_SHEETS_SUMMER_CAMP_RANGE || "A:F"
     : isOnlineLead
       ? process.env.GOOGLE_SHEETS_ONLINE_RANGE || "Leads!A:I"
@@ -261,10 +266,15 @@ async function appendLeadToGoogleSheet({
     const row = [
       name,
       phone,
-      email,
-      learnerType,
-      programInterest,
-      ...(isSummerCampLead ? [
+      ...(isMiseANiveauLead ? [
+        currentLevel || "",
+        leadSource,
+      ] : [
+        email,
+        learnerType,
+        programInterest,
+      ]),
+      ...(isMiseANiveauLead ? [] : isSummerCampLead ? [
         leadSource,
       ] : isOnlineLead ? [
         leadSource,
@@ -334,7 +344,7 @@ async function sendMetaLeadEvent({
   leadId: string;
   name: string;
   phone: string;
-  email: string;
+  email: string | null;
   learnerType: string;
   programInterest: string;
   leadSource: string;
@@ -364,7 +374,7 @@ async function sendMetaLeadEvent({
         action_source: "website",
         event_source_url: eventSourceUrl,
         user_data: {
-          em: [hashMetaValue(email)],
+          em: email ? [hashMetaValue(email)] : undefined,
           ph: phone ? [hashMetaValue(normalizePhone(phone))] : undefined,
           fn: firstName ? [hashMetaValue(firstName)] : undefined,
           ln: lastName ? [hashMetaValue(lastName)] : undefined,
@@ -426,10 +436,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const name = cleanText(body.name);
     const phone = cleanText(body.phone);
-    const email = cleanText(body.email).toLowerCase();
+    const submittedEmail = cleanText(body.email).toLowerCase();
     const learnerType = cleanText(body.learnerType);
     const programInterest = cleanText(body.programInterest);
     const leadSource = cleanLeadSource(body.leadSource);
+    const isMiseANiveauLead = leadSource === "mise_a_niveau_landing";
+    const email = submittedEmail || (isMiseANiveauLead ? "" : submittedEmail);
     const objective = cleanOptionalText(body.objective);
     const currentLevel = cleanOptionalText(body.currentLevel);
     const availability = cleanOptionalText(body.availability);
@@ -442,11 +454,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    if (!name || !phone || !email || !learnerType || !programInterest || !locationConfirmed) {
+    if (!name || !phone || (!email && !isMiseANiveauLead) || !learnerType || !programInterest || !locationConfirmed) {
       return NextResponse.json({ error: "All required fields must be filled in." }, { status: 400 });
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Please provide a valid email address." }, { status: 400 });
     }
 
