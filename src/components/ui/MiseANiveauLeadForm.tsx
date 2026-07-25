@@ -7,7 +7,8 @@ import { CalendarCheck2, Loader2 } from "lucide-react";
 type LeadFormState = {
   name: string;
   phone: string;
-  currentLevel: string;
+  childrenCount: string;
+  childAge: string;
   locationConfirmed: boolean;
   website: string;
 };
@@ -37,12 +38,11 @@ type MetaTrackingState = {
 const initialForm: LeadFormState = {
   name: "",
   phone: "",
-  currentLevel: "",
+  childrenCount: "",
+  childAge: "",
   locationConfirmed: false,
   website: "",
 };
-
-const gradeLevels = ["MS", "GS", "CP", "CE1", "CE2", "CM1", "CM2", "6ème", "5ème", "4ème"];
 
 const attributionKeys = [
   "utm_source",
@@ -137,7 +137,11 @@ export function MiseANiveauLeadForm() {
     const nextErrors: Partial<Record<keyof LeadFormState, string>> = {};
     if (!form.name.trim()) nextErrors.name = "Votre nom est requis.";
     if (!form.phone.trim()) nextErrors.phone = "Votre numéro WhatsApp est requis.";
-    if (!form.currentLevel.trim()) nextErrors.currentLevel = "Veuillez choisir le niveau de votre enfant.";
+    const childrenCount = Number(form.childrenCount);
+    if (!form.childrenCount.trim() || !Number.isInteger(childrenCount) || childrenCount < 1) {
+      nextErrors.childrenCount = "Veuillez indiquer le nombre d'enfants.";
+    }
+    if (!form.childAge.trim()) nextErrors.childAge = "Veuillez indiquer l'âge des enfants.";
     if (!form.locationConfirmed) {
       nextErrors.locationConfirmed = "Veuillez confirmer que le centre à Almaz, Casablanca vous convient.";
     }
@@ -169,9 +173,9 @@ export function MiseANiveauLeadForm() {
           name: form.name,
           phone: form.phone,
           email: "",
-          learnerType: "Enfant",
+          learnerType: `${form.childrenCount} enfant${form.childrenCount === "1" ? "" : "s"}`,
           programInterest: "Cours de mise à niveau",
-          currentLevel: form.currentLevel,
+          currentLevel: form.childAge,
           leadSource: "mise_a_niveau_landing",
           locationConfirmed: form.locationConfirmed,
           website: form.website,
@@ -249,23 +253,41 @@ export function MiseANiveauLeadForm() {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="currentLevel" className="text-sm font-bold text-navy-deep">
-          Niveau de votre enfant <span aria-hidden="true">*</span>
+        <label htmlFor="childrenCount" className="text-sm font-bold text-navy-deep">
+          Nombre d'enfants <span aria-hidden="true">*</span>
         </label>
-        <select
-          id="currentLevel"
-          value={form.currentLevel}
+        <input
+          id="childrenCount"
+          type="number"
+          inputMode="numeric"
+          min="1"
+          max="10"
+          value={form.childrenCount}
           onChange={handleChange}
           aria-required="true"
-          aria-describedby={errors.currentLevel ? "mise-level-error" : undefined}
-          className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.currentLevel ? "border-red-500" : "border-gray-300"}`}
-        >
-          <option value="">Sélectionner</option>
-          {gradeLevels.map((level) => (
-            <option key={level}>{level}</option>
-          ))}
-        </select>
-        {errors.currentLevel && <p id="mise-level-error" className="text-xs font-medium text-red-600">{errors.currentLevel}</p>}
+          aria-describedby={errors.childrenCount ? "mise-children-error" : undefined}
+          className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.childrenCount ? "border-red-500" : "border-gray-300"}`}
+          placeholder="Ex: 1"
+        />
+        {errors.childrenCount && <p id="mise-children-error" className="text-xs font-medium text-red-600">{errors.childrenCount}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="childAge" className="text-sm font-bold text-navy-deep">
+          Âge(s) des enfants <span aria-hidden="true">*</span>
+        </label>
+        <input
+          id="childAge"
+          type="text"
+          inputMode="text"
+          value={form.childAge}
+          onChange={handleChange}
+          aria-required="true"
+          aria-describedby={errors.childAge ? "mise-age-error" : undefined}
+          className={`w-full rounded-xl border bg-white px-4 py-3 text-base outline-none transition-colors focus:ring-2 focus:ring-navy-primary ${errors.childAge ? "border-red-500" : "border-gray-300"}`}
+          placeholder="Ex: 8 ans, 10 ans"
+        />
+        {errors.childAge && <p id="mise-age-error" className="text-xs font-medium text-red-600">{errors.childAge}</p>}
       </div>
 
       <div className={`rounded-2xl border p-4 ${errors.locationConfirmed ? "border-red-300 bg-red-50" : "border-navy-primary/15 bg-navy-primary/5"}`}>

@@ -250,7 +250,7 @@ async function appendLeadToGoogleSheet({
       ? process.env.GOOGLE_SHEETS_ONLINE_SPREADSHEET_ID
       : process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   const sheetRange = isMiseANiveauLead
-    ? process.env.GOOGLE_SHEETS_MISE_A_NIVEAU_RANGE || "A:D"
+    ? process.env.GOOGLE_SHEETS_MISE_A_NIVEAU_RANGE || "A:E"
     : isSummerCampLead
     ? process.env.GOOGLE_SHEETS_SUMMER_CAMP_RANGE || "A:F"
     : isOnlineLead
@@ -267,6 +267,7 @@ async function appendLeadToGoogleSheet({
       name,
       phone,
       ...(isMiseANiveauLead ? [
+        learnerType,
         currentLevel || "",
         leadSource,
       ] : [

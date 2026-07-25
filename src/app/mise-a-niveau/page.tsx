@@ -107,7 +107,7 @@ export default function MiseANiveauLandingPage() {
                 <p className="text-sm font-black uppercase tracking-[0.16em] text-red-accent">Pré-rentrée 2026</p>
                 <h2 className="mt-2 text-2xl font-black text-navy-deep">Réserver une place</h2>
                 <p className="mt-2 text-sm leading-6 text-gray-600">
-                  Laissez vos coordonnées et le niveau de votre enfant. Notre équipe vous rappelle pour confirmer le groupe adapté.
+                  Laissez vos coordonnées, le nombre d'enfants et leur âge. Notre équipe vous rappelle pour confirmer le groupe adapté.
                 </p>
               </div>
               <MiseANiveauLeadForm />
