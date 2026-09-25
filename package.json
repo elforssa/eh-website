@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:recruitment-audit": "node scripts/audit-recruitment-invariants.mjs"
+    "test:recruitment-audit": "node scripts/audit-recruitment-invariants.mjs",
+    "test:crm-inquiry": "node scripts/test-crm-inquiry.mjs",
+    "test:crm-browser-state": "node scripts/test-crm-browser-state.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",

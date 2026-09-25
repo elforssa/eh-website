@@ -61,11 +61,11 @@ export default function EnglishCasablancaLandingPage() {
             </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-navy-deep md:text-6xl lg:text-7xl">
-              Summer Camp d'anglais à Casablanca pour enfants.
+              Summer Camp d&apos;anglais à Casablanca pour enfants.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-600 md:text-xl">
-              Un programme d'été à Almaz 2 où les enfants pratiquent l'anglais à travers des activités, des jeux, des projets créatifs et des moments de prise de parole.
+              Un programme d&apos;été à Almaz 2 où les enfants pratiquent l&apos;anglais à travers des activités, des jeux, des projets créatifs et des moments de prise de parole.
             </p>
 
             <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
@@ -123,7 +123,7 @@ export default function EnglishCasablancaLandingPage() {
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-navy-primary">Pourquoi ce camp</p>
             <h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight text-navy-deep md:text-5xl">
-              Des vacances utiles, sans transformer l'été en salle de classe.
+              Des vacances utiles, sans transformer l&apos;été en salle de classe.
             </h2>
             <div className="mt-8 grid gap-4">
               {campHighlights.map(({ title, text, icon: Icon }) => (

@@ -22,6 +22,9 @@ export default function PrivacyPage() {
               <p className="mt-3">
                 Lors d&apos;une candidature, nous pouvons également collecter votre zone de résidence, vos disponibilités, votre expérience, vos niveaux de langue, vos réponses au questionnaire et votre CV.
               </p>
+              <p className="mt-3">
+                Pour les demandes envoyées depuis ce site, nous transmettons vos coordonnées, vos réponses et, lorsqu&apos;ils sont disponibles, les paramètres de campagne et la page d&apos;origine à notre système de gestion des demandes English Hills. Cela permet à notre équipe de vous recontacter au sujet de votre demande. L&apos;envoi d&apos;une demande ne crée pas d&apos;inscription ni de paiement.
+              </p>
             </section>
 
             <section>
@@ -34,13 +37,13 @@ export default function PrivacyPage() {
                 <li>Répondre à vos demandes</li>
                 <li>Examiner et gérer les candidatures à nos offres d&apos;emploi</li>
               </ul>
-              <p className="mt-3">Nous ne vendons, ne louons ni ne partageons vos données personnelles à des tiers à des fins commerciales.</p>
+              <p className="mt-3">Nous ne vendons ni ne louons vos données personnelles. Lorsque la mesure publicitaire Meta est activée, des identifiants de contact hachés et des informations de navigation peuvent être transmis à Meta pour mesurer les demandes reçues. Les demandes issues des anciens formulaires peuvent également être copiées dans nos feuilles de suivi Google.</p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-3">3. Stockage & sécurité</h2>
               <p>
-                Toutes les soumissions de formulaires sont stockées de manière sécurisée via Supabase, une infrastructure de base de données conforme au RGPD. L&apos;accès à vos données est strictement limité au personnel autorisé d&apos;English Hills. Nous appliquons des mesures de sécurité conformes aux standards du secteur pour protéger vos informations contre tout accès ou divulgation non autorisé.
+                Les demandes de contact et de cours sont traitées dans notre CRM. Les candidatures et certaines données des anciens formulaires peuvent être conservées dans Supabase. L&apos;accès à ces données est limité au personnel autorisé d&apos;English Hills. Nous appliquons des mesures de sécurité pour protéger vos informations contre tout accès ou divulgation non autorisé.
               </p>
               <p className="mt-3">Les CV de candidature sont conservés dans un espace privé et ne disposent pas de lien public.</p>
             </section>

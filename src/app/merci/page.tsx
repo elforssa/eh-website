@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { CheckCircle2, MessageCircle, PhoneCall } from "lucide-react";
-import { MetaLeadEvent } from "@/components/analytics/MetaLeadEvent";
-import { ThankYouTracker } from "@/components/ui/ThankYouTracker";
+import { InquiryThankYouTracker } from "@/components/analytics/InquiryThankYouTracker";
+import { receiptCookie, verifyReceipt } from "@/lib/crm/receipt";
 
 export const metadata: Metadata = {
   title: "Merci | English Hills",
@@ -14,23 +15,24 @@ export const metadata: Metadata = {
   },
 };
 
-type MerciPageProps = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
-
-function getParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-export default async function MerciPage({ searchParams }: MerciPageProps) {
-  const params = await searchParams;
-  const leadId = getParam(params.lead_id);
-  const token = getParam(params.token);
-
+export default async function MerciPage() {
+  const proof = verifyReceipt((await cookies()).get(receiptCookie)?.value);
+  if (!proof) {
+    return (
+      <div className="bg-[#fbfcff] py-16 md:py-24">
+        <div className="container mx-auto max-w-3xl px-4 md:px-6">
+          <div className="rounded-[1.75rem] border border-gray-200 bg-white p-8 text-center shadow-xl shadow-navy-primary/10 md:p-12">
+            <h1 className="text-3xl font-black text-navy-deep md:text-5xl">Aucune demande récente à confirmer.</h1>
+            <p className="mt-5 text-gray-600">Pour nous écrire, utilisez le formulaire de contact.</p>
+            <Link href="/contact" className="mt-8 inline-flex rounded-full bg-red-accent px-6 py-4 font-bold text-white">Nous contacter</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-[#fbfcff] py-16 md:py-24">
-      <ThankYouTracker leadId={leadId} token={token} />
-      <MetaLeadEvent eventId={leadId} />
+      <InquiryThankYouTracker />
 
       <div className="container mx-auto max-w-3xl px-4 md:px-6">
         <div className="mb-8 flex justify-center">
