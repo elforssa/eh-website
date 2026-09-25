@@ -47,11 +47,28 @@ names are never inferred from one another. The adult schema uses contact name,
 a valid phone or email, and `program_interest`; it allows `learner_type`,
 `objective`, `current_level`, and `availability`.
 
+Campaign schemas also pass through safe page-specific answer keys, such as
+`school_type`, `biggest_difficulty`, `preferred_test_day`, `parent_goal`,
+`job_role`, or `english_at_work`. These stay in CRM submission form answers even
+when a mapping does not normalize them into a contact or lead field. Adding
+such a question does **not** require a CRM mapping, migration, endpoint, or
+new `form_key`. Create a versioned schema only when business meaning changes.
+The CRM payload has no separate answer-label field; use readable snake-case
+keys, and let the CRM use its configured label or readable key fallback.
+
+The website rejects unsafe answers instead of silently dropping them: at most
+30 keys, lowercase snake-case keys up to 64 characters, strings up to 1,000
+characters (4,000 for `message`), arrays of up to 10 strings of 200 characters
+each, and finite bounded numbers. Technical, attribution, tracking, token,
+identifier, browser metadata, and raw-payload keys are rejected as answers.
+Attribution remains in the separate `attribution` object.
+
 ### How to add a student/customer campaign landing page
 
 1. Create the page and declare `destination: "crm"` in its form configuration.
 2. Choose `campaign_parent_lead_v1` or `campaign_adult_lead_v1` based on who is
-   taking the course. Set the real `programInterest` and visible questions.
+   taking the course. Set the real `programInterest`, canonical visible questions,
+   and any `extraQuestions` with readable labels and safe snake-case keys.
 3. Render `CampaignLeadForm` with that configuration, or use the shared
    `useInquirySubmission` hook and `InquiryConsent` for bespoke form UI. Keep
    the UUID and attribution logic in the hook.
@@ -94,9 +111,14 @@ contains CRM IDs. No student, enrollment, or payment API is called.
 
 ## Compatibility delivery
 
-The existing campaign Meta CAPI `Lead` event remains best effort after CRM
-acceptance, with the website request UUID as its event ID. Its failure or
-timeout does not change the accepted response. The existing browser Pixel
+The existing campaign Meta CAPI `Lead` event is disabled by default. The
+server-only `CRM_LEGACY_META_CAPI_ENABLED` switch must be exactly `true` to
+send it after CRM acceptance. Vercel preview is blocked even if the switch is
+accidentally enabled there. Keep it `false` in preview and staging;
+production may explicitly enable it temporarily to preserve measurement
+during transition. When enabled, it remains best effort with the website
+request UUID as its event ID. Its failure or timeout does not change the
+accepted response. The existing browser Pixel
 `Lead` event runs only after a valid short-lived, signed, non-PII success
 receipt is consumed on `/merci`. A direct `/merci` visit has no success proof
 and emits no `Lead` event. Contact continues its inline success panel and does
@@ -123,8 +145,11 @@ when an inquiry form loads. `_fbp` and `_fbc` are read from actual cookies;
 
 All four forms have an unchecked required inquiry-consent checkbox with a
 privacy-policy link. Location checkboxes remain separate. The campaign
-honeypots are preserved and Contact has the same protection. Turnstile can be
-added later if abuse warrants it; the CRM currently treats it as optional.
+honeypots are preserved and Contact has the same protection. No Turnstile
+validation or bypass was changed. A preview test works if CRM Turnstile
+verification is unconfigured. If `TURNSTILE_SECRET_KEY` is configured in admin
+production, preview-host tokens cannot meet the canonical `www` hostname
+requirement; use another controlled activation/test method in that case.
 
 ## Local verification
 
@@ -132,5 +157,7 @@ added later if abuse warrants it; the CRM currently treats it as optional.
 sanitization, browser storage, and UUID reuse/change. `npm run test:crm-inquiry`
 starts a loopback-only mock CRM and Next server. It never calls the deployed CRM.
 The latter checks payloads, errors, retry identity, timeout, honeypot, and
-thank-you proof. Run both plus `npm run test:recruitment-audit`, `npm run lint`,
+thank-you proof. `npm run test:crm-flexible-answers` checks answer safety and the
+Meta CAPI switch without any Meta request. Run these plus
+`npm run test:recruitment-audit`, `npm run lint`,
 and `npm run build` before activation.

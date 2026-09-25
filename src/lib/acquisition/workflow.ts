@@ -5,6 +5,7 @@ export type CrmWorkflow = {
   formSchema: CrmSchema;
   programInterest?: string;
   visibleQuestions?: readonly string[];
+  extraQuestions?: readonly { key: string; label: string; inputType?: "text" | "number" | "checkbox"; required?: boolean }[];
 };
 export type RecruitmentWorkflow = {
   destination: "recruitment";

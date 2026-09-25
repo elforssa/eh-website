@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import type { NextRequest } from "next/server";
 import type { InquiryPayload } from "./contract";
+import { legacyMetaCapiEnabled } from "./meta-switch";
 
 function hash(value: string) {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
@@ -10,6 +11,7 @@ function hash(value: string) {
 // Compatibility with the existing campaign Lead CAPI event. The website
 // request_key is its event ID, so a repeated accepted request can be deduped.
 export async function sendExistingMetaLead(req: NextRequest, inquiry: InquiryPayload) {
+  if (!legacyMetaCapiEnabled(process.env.CRM_LEGACY_META_CAPI_ENABLED)) return;
   if (inquiry.form_key === "general_contact_v1") return;
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CAPI_ACCESS_TOKEN;

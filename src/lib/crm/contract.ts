@@ -1,5 +1,6 @@
 import { safePageUrl, type Attribution } from "./attribution";
 import type { FormKey } from "./client";
+import { sanitizeAnswers, type AnswerValue } from "./answer-sanitizer";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,6 +14,7 @@ function field(value: unknown, max = 500): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 function count(value: unknown): number | null {
+  if (typeof value !== "string" && typeof value !== "number") return null;
   const result = Number(value);
   return Number.isInteger(result) && result >= 1 && result <= 10 ? result : null;
 }
@@ -22,7 +24,7 @@ export type InquiryPayload = {
   form_key: FormKey;
   request_key: string;
   contact: { name?: string; phone?: string; email?: string };
-  answers: Record<string, string | number | boolean>;
+  answers: Record<string, AnswerValue>;
   attribution?: Attribution;
   consent: true;
 };
@@ -45,39 +47,32 @@ export function prepareInquiry(raw: unknown, siteKey: string):
   const emailValid = email.test(address);
   if (!name || (phone && !phoneValid) || (address && !emailValid) || (!phoneValid && !emailValid)) return { ok: false, status: 400 };
   const contact = { name, ...(phone ? { phone } : {}), ...(address ? { email: address } : {}) };
-  const rawAnswers = object(body.answers);
-  let answers: InquiryPayload["answers"];
+  const answers = sanitizeAnswers(body.answers);
+  if (!answers) return { ok: false, status: 400 };
+  for (const key of ["learner_name", "objective", "current_level", "availability", "learner_type"] as const) {
+    const value = answers[key];
+    if (value !== undefined && (typeof value !== "string" || value.length > 200)) return { ok: false, status: 400 };
+  }
+  if (answers.learner_ages !== undefined && !(typeof answers.learner_ages === "string" && answers.learner_ages.length <= 200) && !Array.isArray(answers.learner_ages)) return { ok: false, status: 400 };
+  if (answers.message !== undefined && typeof answers.message !== "string") return { ok: false, status: 400 };
+  if (answers.learner_age !== undefined) {
+    if (typeof answers.learner_age !== "string" && typeof answers.learner_age !== "number") return { ok: false, status: 400 };
+    const age = Number(answers.learner_age);
+    if (!Number.isInteger(age) || age < 1 || age > 120) return { ok: false, status: 400 };
+    answers.learner_age = age;
+  }
+  if (answers.children_count !== undefined) {
+    const children = count(answers.children_count);
+    if (!children) return { ok: false, status: 400 };
+    answers.children_count = children;
+  }
+  if (answers.location_confirmed !== undefined && typeof answers.location_confirmed !== "boolean") return { ok: false, status: 400 };
   if (formKey === "general_contact_v1") {
-    const message = field(rawAnswers.message, 4000);
-    if (!message) return { ok: false, status: 400 };
-    answers = { ...(field(rawAnswers.program_interest, 120) ? { program_interest: field(rawAnswers.program_interest, 120) } : {}), message };
+    if (typeof answers.message !== "string" || !answers.message) return { ok: false, status: 400 };
+    if (answers.program_interest !== undefined && (typeof answers.program_interest !== "string" || answers.program_interest.length > 120)) return { ok: false, status: 400 };
   } else {
-    const programInterest = field(rawAnswers.program_interest, 120);
-    if (!programInterest || (formKey === "campaign_parent_lead_v1" && !phoneValid)) return { ok: false, status: 400 };
-    answers = { program_interest: programInterest };
-    const allowed = formKey === "campaign_parent_lead_v1"
-      ? ["learner_name", "learner_ages", "objective", "current_level", "availability"]
-      : ["learner_type", "objective", "current_level", "availability"];
-    for (const key of allowed) {
-      const value = field(rawAnswers[key], 200);
-      if (value) answers[key] = value;
-    }
-    if (formKey === "campaign_parent_lead_v1") {
-      if (rawAnswers.learner_age !== undefined) {
-        const age = Number(rawAnswers.learner_age);
-        if (!Number.isInteger(age) || age < 1 || age > 120) return { ok: false, status: 400 };
-        answers.learner_age = age;
-      }
-      if (rawAnswers.children_count !== undefined) {
-        const children = count(rawAnswers.children_count);
-        if (!children) return { ok: false, status: 400 };
-        answers.children_count = children;
-      }
-      if (rawAnswers.location_confirmed !== undefined) {
-        if (typeof rawAnswers.location_confirmed !== "boolean") return { ok: false, status: 400 };
-        answers.location_confirmed = rawAnswers.location_confirmed;
-      }
-    }
+    if (typeof answers.program_interest !== "string" || !answers.program_interest || answers.program_interest.length > 120
+      || (formKey === "campaign_parent_lead_v1" && !phoneValid)) return { ok: false, status: 400 };
   }
 
   const rawAttr = object(body.attribution);

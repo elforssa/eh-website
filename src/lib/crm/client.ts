@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { readAttribution, type Attribution } from "./attribution";
 import { prepareSubmission, type PreparedInquiry } from "./prepared";
+import type { AnswerValue } from "./answer-sanitizer";
 
 import type { CrmSchema } from "@/lib/acquisition/workflow";
 
@@ -10,7 +11,7 @@ export type FormKey = CrmSchema;
 export type InquiryDraft = {
   form_key: FormKey;
   contact: { name?: string; phone?: string; email?: string };
-  answers: Record<string, string | number | boolean>;
+  answers: Record<string, AnswerValue>;
   consent: boolean;
   website: string;
   attribution?: Attribution;

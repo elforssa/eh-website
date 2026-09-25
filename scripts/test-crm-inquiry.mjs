@@ -30,6 +30,7 @@ const site = spawn("./node_modules/.bin/next", ["start", "-p", String(sitePort)]
     CRM_INQUIRY_ENDPOINT: `http://127.0.0.1:${mockPort}/inquiry`,
     CRM_WEBSITE_SITE_KEY: "english-hills-website",
     CRM_WEBSITE_RECEIPT_SECRET: "a-local-test-secret-with-more-than-32-characters",
+    CRM_LEGACY_META_CAPI_ENABLED: "false",
     META_CAPI_ACCESS_TOKEN: "",
     NEXT_PUBLIC_META_PIXEL_ID: "",
   }, stdio: ["ignore", "pipe", "pipe"],
@@ -95,6 +96,20 @@ try {
   cases.push(draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000" }, { program_interest: "Anglais annuel", learner_age: 9 }));
   cases[4].attribution.utm_campaign = "annual_english_september";
   cases[4].attribution.landing_page = "https://www.english-hills.com/anglais-enfants";
+  cases.push(draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000" }, {
+    program_interest: "Anglais annuel", learner_age: 9, school_type: "Public",
+    biggest_difficulty: "Speaking", preferred_test_day: "Saturday",
+  }));
+  cases[5].attribution.utm_campaign = "parent_campaign_a";
+  cases.push(draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000" }, {
+    program_interest: "Test de niveau", learner_age: 9, previous_english_classes: "Yes",
+    parent_goal: "Confidence", learning_goals: ["Speaking", "Reading"],
+  }));
+  cases[6].attribution.utm_campaign = "parent_campaign_b";
+  cases[6].attribution.landing_page = "https://www.english-hills.com/test-anglais-gratuit";
+  cases.push(draft("campaign_adult_lead_v1", { name: "Test Adult", email: "adult@example.test" }, {
+    program_interest: "Online English", job_role: "Engineer", english_at_work: true,
+  }));
   for (const input of cases) {
     const response = await post(input);
     assert.equal(response.status, 200, input.form_key);
@@ -108,9 +123,15 @@ try {
     assert.deepEqual(sent.body.contact, input.contact);
     assert.deepEqual(sent.body.answers, input.answers);
     assert.equal(sent.body.consent, true);
-    assert.equal(sent.body.attribution.landing_page, input === cases[4] ? "https://www.english-hills.com/anglais-enfants" : "https://www.english-hills.com/contact");
+    assert.equal(sent.body.attribution.landing_page, input === cases[4] ? "https://www.english-hills.com/anglais-enfants"
+      : input === cases[6] ? "https://www.english-hills.com/test-anglais-gratuit" : "https://www.english-hills.com/contact");
     assert.equal(sent.body.attribution.referrer, "https://example.org/");
     if (input === cases[4]) assert.equal(sent.body.attribution.utm_campaign, "annual_english_september");
+    if (input === cases[6]) {
+      assert.equal(sent.body.attribution.utm_campaign, "parent_campaign_b");
+      assert.equal(sent.body.form_key, cases[5].form_key);
+      assert.ok(!("utm_campaign" in sent.body.answers));
+    }
     assert.ok(!JSON.stringify(result).includes("MUST_NOT_EXPOSE"));
     if (input.form_key === "general_contact_v1") assert.equal(response.headers.get("set-cookie"), null);
     else assert.ok(response.headers.get("set-cookie")?.includes("eh_inquiry_receipt="));
@@ -128,6 +149,19 @@ try {
     { ...cases[0], request_key: randomUUID(), form_key: "recruitment" },
   ];
   for (const input of invalids) assert.equal((await post(input)).status, 400);
+  const unsafeAnswers = [
+    { utm_campaign: "misplaced" }, { fbclid: "misplaced" }, { crm_contact_id: "internal" },
+    { campaign_id: "technical" }, { turnstileToken: "technical" }, { request_key: "technical" },
+    { raw_payload: "technical" }, { ["x".repeat(65)]: "long key" },
+    { school_type: "x".repeat(1001) }, { learning_goals: Array(11).fill("goal") },
+    { nested: { a: 1 } },
+    Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`question_${index}`, "value"])),
+  ];
+  for (const extra of unsafeAnswers) {
+    const before = received.length;
+    assert.equal((await post({ ...cases[5], request_key: randomUUID(), answers: { ...cases[5].answers, ...extra } })).status, 400);
+    assert.equal(received.length, before);
+  }
   const beforeRecruitment = received.length;
   const teacherFixture = {
     destination: "recruitment", workflow: "temporary_hiring_lead", role: "Professeur d'anglais",

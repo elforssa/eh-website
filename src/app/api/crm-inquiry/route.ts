@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prepareInquiry } from "@/lib/crm/contract";
 import { makeReceipt, receiptCookie } from "@/lib/crm/receipt";
 import { sendExistingMetaLead } from "@/lib/crm/legacy-meta";
-import { runBestEffort } from "@/lib/crm/best-effort";
+import { runLegacyMetaCompatibility } from "@/lib/crm/meta-switch";
 
 const canonicalOrigin = "https://www.english-hills.com";
 
@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
       });
       if (response.ok) {
         // Compatibility delivery is bounded and never changes CRM acceptance.
-        await runBestEffort(
+        await runLegacyMetaCompatibility(
+          process.env.CRM_LEGACY_META_CAPI_ENABLED,
           () => sendExistingMetaLead(req, prepared.value),
           (error) => console.error("Compatibility Meta CAPI delivery failed", error),
         );
