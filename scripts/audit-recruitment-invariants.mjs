@@ -81,5 +81,14 @@ assert.match(delivery, /AC:AC/);
 assert.match(delivery, /A\$\{sheetRowNumber\}:Q/);
 assert.match(delivery, /U\$\{sheetRowNumber\}:U/);
 assert.match(delivery, /W\$\{sheetRowNumber\}:AC/);
+assert.match(delivery, /const CV_SIGNED_URL_TTL_SECONDS = 90 \* 24 \* 60 \* 60/);
+assert.match(delivery, /\.from\(JOB_CV_BUCKET\)[\s\S]*\.createSignedUrl\(row\.cv_storage_path, CV_SIGNED_URL_TTL_SECONDS\)/);
+assert.match(delivery, /=HYPERLINK\(\"\$\{escapeFormulaValue\(url\)\}\",\"\$\{escapeFormulaValue\(label\)\}\"\)/);
+
+// The CV link update remains isolated from the manually maintained review columns R, S, T and V.
+assert.doesNotMatch(delivery, /R\$\{sheetRowNumber\}/);
+assert.doesNotMatch(delivery, /S\$\{sheetRowNumber\}/);
+assert.doesNotMatch(delivery, /T\$\{sheetRowNumber\}/);
+assert.doesNotMatch(delivery, /V\$\{sheetRowNumber\}/);
 
 console.log("Recruitment invariant simulations passed.");

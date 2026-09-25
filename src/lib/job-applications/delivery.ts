@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createHash, createSign } from "node:crypto";
-import { createServiceSupabaseClient } from "./supabase";
+import { createServiceSupabaseClient, JOB_CV_BUCKET } from "./supabase";
 
 type DeliveryStatus = "PENDING" | "PROCESSING" | "DELIVERED" | "FAILED";
 
@@ -24,6 +24,7 @@ type JobApplicationRow = {
   english_level: string;
   crm_tools_experience: string;
   sales_scenario_response: string;
+  cv_storage_path: string;
   automatic_score: number;
   application_status: string;
   knockout_reasons: string[];
@@ -199,7 +200,14 @@ async function sendMetaApplication(row: JobApplicationRow, signal: AbortSignal) 
   }
 }
 
-function sheetRow(row: JobApplicationRow) {
+const CV_SIGNED_URL_TTL_SECONDS = 90 * 24 * 60 * 60;
+
+function sheetHyperlink(url: string, label: string) {
+  const escapeFormulaValue = (value: string) => value.replace(/"/g, '""');
+  return `=HYPERLINK("${escapeFormulaValue(url)}","${escapeFormulaValue(label)}")`;
+}
+
+function sheetRow(row: JobApplicationRow, signedCvUrl: string) {
   return [
     row.created_at,
     row.full_name,
@@ -221,7 +229,7 @@ function sheetRow(row: JobApplicationRow) {
     "",
     "",
     row.application_status,
-    "Stored privately",
+    sheetHyperlink(signedCvUrl, "View CV"),
     "",
     row.sales_scenario_response,
     row.knockout_reasons.join(", "),
@@ -238,6 +246,14 @@ async function writeGoogleSheet(row: JobApplicationRow, signal: AbortSignal) {
   const configuredRange = process.env.GOOGLE_SHEETS_RECRUITMENT_RANGE || "Applications!A:AC";
   if (!spreadsheetId) throw new Error("Recruitment spreadsheet ID is missing.");
 
+  const supabase = createServiceSupabaseClient();
+  const { data: signedCv, error: signedCvError } = await supabase.storage
+    .from(JOB_CV_BUCKET)
+    .createSignedUrl(row.cv_storage_path, CV_SIGNED_URL_TTL_SECONDS);
+  if (signedCvError || !signedCv?.signedUrl) {
+    throw new Error("Unable to create a signed CV URL for Google Sheets.");
+  }
+
   const accessToken = await getGoogleAccessToken(signal);
   const sheetName = configuredRange.includes("!") ? configuredRange.split("!")[0] : "Applications";
   const headers = { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" };
@@ -252,7 +268,7 @@ async function writeGoogleSheet(row: JobApplicationRow, signal: AbortSignal) {
   const existingIndex = Array.isArray(lookup.values)
     ? lookup.values.findIndex((value: unknown[]) => value?.[0] === row.id)
     : -1;
-  const values = sheetRow(row);
+  const values = sheetRow(row, signedCv.signedUrl);
 
   if (existingIndex >= 0) {
     const sheetRowNumber = existingIndex + 1;
