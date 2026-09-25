@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
           (error) => console.error("Compatibility Meta CAPI delivery failed", error),
         );
         const accepted = NextResponse.json({ success: true });
-        if (prepared.value.form_key !== "contact") {
+        if (prepared.value.form_key !== "general_contact_v1") {
           accepted.cookies.set(receiptCookie, makeReceipt(prepared.value.request_key), {
             httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax",
             path: "/", maxAge: 600,

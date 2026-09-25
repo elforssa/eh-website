@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type LeadFormState = {
   name: string;
@@ -26,7 +27,7 @@ const initialForm: LeadFormState = {
   website: "",
 };
 
-export function MiseANiveauLeadForm() {
+export function MiseANiveauLeadForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "campaign_parent_lead_v1" } }) {
   const router = useRouter();
   const inquiry = useInquirySubmission();
   const [form, setForm] = useState<LeadFormState>(initialForm);
@@ -71,9 +72,9 @@ export function MiseANiveauLeadForm() {
     setSubmitting(true);
     try {
       const accepted = await inquiry.submit({
-        form_key: "mise_a_niveau",
+        form_key: crmFormKey(campaign),
         contact: { name: form.name, phone: form.phone },
-        answers: { children_count: Number(form.childrenCount), child_ages: form.childAge, location_confirmed: form.locationConfirmed, program_interest: "Cours de mise à niveau" },
+        answers: { children_count: Number(form.childrenCount), learner_ages: form.childAge, location_confirmed: form.locationConfirmed, program_interest: campaign.programInterest || "" },
         consent: form.privacyConsent,
         website: form.website,
       });

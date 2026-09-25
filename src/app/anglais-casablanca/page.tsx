@@ -1,3 +1,4 @@
+import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CheckCircle2, MapPin, Palette, ShieldCheck, UsersRound } from "lucide-react";
@@ -102,7 +103,7 @@ export default function EnglishCasablancaLandingPage() {
                   Laissez vos coordonnées. Notre équipe vous rappelle avec les détails du camp et les disponibilités.
                 </p>
               </div>
-              <AdLeadForm />
+              <AdLeadForm campaign={{ destination: "crm", formSchema: "campaign_parent_lead_v1", programInterest: "Camp d'été", visibleQuestions: ["children_count", "location_confirmed"] } satisfies CrmWorkflow} />
             </div>
           </div>
         </div>

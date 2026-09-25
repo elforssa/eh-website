@@ -9,7 +9,7 @@ const storageKey = "english_hills_crm_attribution_v1";
 const legacyStorageKey = "english_hills_ad_attribution";
 const maxAgeMs = 30 * 24 * 60 * 60 * 1000;
 const campaignKeys = attributionKeys.slice(0, 6);
-const knownPages = new Set(["/", "/contact", "/anglais-casablanca", "/anglais-en-ligne", "/mise-a-niveau"]);
+const campaignPath = /^\/[a-z][a-z0-9-]{2,59}$/;
 
 export function safePageUrl(raw: string | undefined | null): string | undefined {
   if (!raw) return undefined;
@@ -17,7 +17,8 @@ export function safePageUrl(raw: string | undefined | null): string | undefined 
     const url = new URL(raw);
     if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
     // Query strings and arbitrary path segments can contain personal data.
-    const path = ["english-hills.com", "www.english-hills.com"].includes(url.hostname) && knownPages.has(url.pathname)
+    const safeCampaignPath = url.pathname === "/" || (campaignPath.test(url.pathname) && !/\d{6,}/.test(url.pathname));
+    const path = ["english-hills.com", "www.english-hills.com"].includes(url.hostname) && safeCampaignPath
       ? url.pathname : "/";
     return `${url.origin}${path}`.slice(0, 1000);
   } catch {

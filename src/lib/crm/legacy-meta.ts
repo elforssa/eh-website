@@ -10,7 +10,7 @@ function hash(value: string) {
 // Compatibility with the existing campaign Lead CAPI event. The website
 // request_key is its event ID, so a repeated accepted request can be deduped.
 export async function sendExistingMetaLead(req: NextRequest, inquiry: InquiryPayload) {
-  if (inquiry.form_key === "contact") return;
+  if (inquiry.form_key === "general_contact_v1") return;
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const token = process.env.META_CAPI_ACCESS_TOKEN;
   if (!pixelId || !token) return;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { prepareSubmission } from "../src/lib/crm/prepared.ts";
-import { readAttribution } from "../src/lib/crm/attribution.ts";
+import { readAttribution, safePageUrl } from "../src/lib/crm/attribution.ts";
 import { runBestEffort } from "../src/lib/crm/best-effort.ts";
 
 const memory = new Map();
@@ -36,8 +36,10 @@ const second = readAttribution(72 * day);
 assert.equal(second.utm_source, "second");
 assert.equal(second.utm_campaign, undefined);
 assert.equal(second.landing_page, "https://www.english-hills.com/contact");
+assert.equal(safePageUrl("https://www.english-hills.com/anglais-enfants?email=private@example.com"), "https://www.english-hills.com/anglais-enfants");
+assert.equal(safePageUrl("https://www.english-hills.com/212600000000?x=1"), "https://www.english-hills.com/");
 
-const draft = { form_key: "contact", contact: { name: "Private Parent", email: "parent@example.test" }, answers: { message: "A question", program: "General" }, consent: true, website: "" };
+const draft = { form_key: "general_contact_v1", contact: { name: "Private Parent", email: "parent@example.test" }, answers: { message: "A question", program_interest: "General" }, consent: true, website: "" };
 let sequence = 0;
 const uuid = () => `request-${++sequence}`;
 const prepared = prepareSubmission(null, draft, second, uuid);

@@ -1,3 +1,4 @@
+import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { BookOpenCheck, CalendarDays, CheckCircle2, Clock3, MapPin, School, UsersRound } from "lucide-react";
@@ -110,7 +111,7 @@ export default function MiseANiveauLandingPage() {
                   Laissez vos coordonnées, le nombre d&apos;enfants et leur âge. Notre équipe vous rappelle pour confirmer le groupe adapté.
                 </p>
               </div>
-              <MiseANiveauLeadForm />
+              <MiseANiveauLeadForm campaign={{ destination: "crm", formSchema: "campaign_parent_lead_v1", programInterest: "Cours de mise à niveau", visibleQuestions: ["children_count", "learner_ages", "location_confirmed"] } satisfies CrmWorkflow} />
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useInquirySubmission, InquiryError } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type FormState = {
   name: string;
@@ -17,7 +18,7 @@ type FormState = {
 
 const initialForm: FormState = { name: "", email: "", program: "Renseignement général", message: "", privacyConsent: false, website: "" };
 
-export function ContactForm() {
+export function ContactForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "general_contact_v1" } }) {
   const inquiry = useInquirySubmission();
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -57,9 +58,9 @@ export function ContactForm() {
     setSubmitting(true);
     try {
       const accepted = await inquiry.submit({
-        form_key: "contact",
+        form_key: crmFormKey(campaign),
         contact: { name: form.name, email: form.email },
-        answers: { program: form.program, message: form.message },
+        answers: { program_interest: form.program, message: form.message },
         consent: form.privacyConsent,
         website: form.website,
       });

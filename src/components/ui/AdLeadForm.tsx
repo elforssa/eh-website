@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type LeadFormState = {
   name: string;
@@ -26,7 +27,7 @@ const initialForm: LeadFormState = {
   website: "",
 };
 
-export function AdLeadForm() {
+export function AdLeadForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "campaign_parent_lead_v1" } }) {
   const router = useRouter();
   const inquiry = useInquirySubmission();
   const [form, setForm] = useState<LeadFormState>(initialForm);
@@ -75,9 +76,9 @@ export function AdLeadForm() {
     setSubmitting(true);
     try {
       const accepted = await inquiry.submit({
-        form_key: "summer_camp",
+        form_key: crmFormKey(campaign),
         contact: { name: form.name, phone: form.phone, email: form.email },
-        answers: { children_count: Number(form.childrenCount), location_confirmed: form.locationConfirmed, program_interest: "Camp d'été" },
+        answers: { children_count: Number(form.childrenCount), location_confirmed: form.locationConfirmed, program_interest: campaign.programInterest || "" },
         consent: form.privacyConsent,
         website: form.website,
       });

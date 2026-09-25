@@ -4,7 +4,9 @@ import { useEffect, useRef } from "react";
 import { readAttribution, type Attribution } from "./attribution";
 import { prepareSubmission, type PreparedInquiry } from "./prepared";
 
-export type FormKey = "contact" | "summer_camp" | "online_english" | "mise_a_niveau";
+import type { CrmSchema } from "@/lib/acquisition/workflow";
+
+export type FormKey = CrmSchema;
 export type InquiryDraft = {
   form_key: FormKey;
   contact: { name?: string; phone?: string; email?: string };

@@ -87,11 +87,14 @@ try {
   assert.equal(www.statusCode, 200);
 
   const cases = [
-    draft("contact", { name: "Test Parent", email: "parent@example.test" }, { program: "Formation entreprise", message: "A test question" }),
-    draft("summer_camp", { name: "Test Parent", phone: "+212600000000", email: "parent@example.test" }, { children_count: 2, location_confirmed: true, program_interest: "Camp d'été" }),
-    draft("online_english", { name: "Test Learner", phone: "+212600000000", email: "learner@example.test" }, { learner_type: "Pour moi", program_interest: "Cours particulier 1:1", objective: "IELTS", current_level: "Débutant", availability: "Week-end" }),
-    draft("mise_a_niveau", { name: "Test Parent", phone: "+212600000000" }, { children_count: 2, child_ages: "8 ans, 10 ans", location_confirmed: true, program_interest: "Cours de mise à niveau" }),
+    draft("general_contact_v1", { name: "Test Parent", email: "parent@example.test" }, { program_interest: "Formation entreprise", message: "A test question" }),
+    draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000", email: "parent@example.test" }, { children_count: 2, location_confirmed: true, program_interest: "Camp d'été" }),
+    draft("campaign_adult_lead_v1", { name: "Test Learner", phone: "+212600000000", email: "learner@example.test" }, { learner_type: "Pour moi", program_interest: "Cours particulier 1:1", objective: "IELTS", current_level: "Débutant", availability: "Week-end" }),
+    draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000" }, { children_count: 2, learner_ages: "8 ans, 10 ans", location_confirmed: true, program_interest: "Cours de mise à niveau" }),
   ];
+  cases.push(draft("campaign_parent_lead_v1", { name: "Test Parent", phone: "+212600000000" }, { program_interest: "Anglais annuel", learner_age: 9 }));
+  cases[4].attribution.utm_campaign = "annual_english_september";
+  cases[4].attribution.landing_page = "https://www.english-hills.com/anglais-enfants";
   for (const input of cases) {
     const response = await post(input);
     assert.equal(response.status, 200, input.form_key);
@@ -105,20 +108,37 @@ try {
     assert.deepEqual(sent.body.contact, input.contact);
     assert.deepEqual(sent.body.answers, input.answers);
     assert.equal(sent.body.consent, true);
-    assert.equal(sent.body.attribution.landing_page, "https://www.english-hills.com/contact");
+    assert.equal(sent.body.attribution.landing_page, input === cases[4] ? "https://www.english-hills.com/anglais-enfants" : "https://www.english-hills.com/contact");
     assert.equal(sent.body.attribution.referrer, "https://example.org/");
+    if (input === cases[4]) assert.equal(sent.body.attribution.utm_campaign, "annual_english_september");
     assert.ok(!JSON.stringify(result).includes("MUST_NOT_EXPOSE"));
-    if (input.form_key === "contact") assert.equal(response.headers.get("set-cookie"), null);
+    if (input.form_key === "general_contact_v1") assert.equal(response.headers.get("set-cookie"), null);
     else assert.ok(response.headers.get("set-cookie")?.includes("eh_inquiry_receipt="));
   }
 
   const invalids = [
     { ...cases[0], request_key: randomUUID(), consent: false },
     { ...cases[0], request_key: randomUUID(), contact: { name: "Only a name" } },
-    { ...cases[3], request_key: randomUUID(), answers: { ...cases[3].answers, child_ages: "" } },
+    { ...cases[3], request_key: randomUUID(), answers: { ...cases[3].answers, children_count: 0 } },
+    { ...cases[0], request_key: randomUUID(), form_key: "contact" },
+    { ...cases[1], request_key: randomUUID(), form_key: "summer_camp" },
+    { ...cases[2], request_key: randomUUID(), form_key: "online_english" },
+    { ...cases[3], request_key: randomUUID(), form_key: "mise_a_niveau" },
+    { ...cases[1], request_key: randomUUID(), destination: "recruitment" },
     { ...cases[0], request_key: randomUUID(), form_key: "recruitment" },
   ];
   for (const input of invalids) assert.equal((await post(input)).status, 400);
+  const beforeRecruitment = received.length;
+  const teacherFixture = {
+    destination: "recruitment", workflow: "temporary_hiring_lead", role: "Professeur d'anglais",
+    request_key: randomUUID(), name: "Test Applicant", phone: "+212600000000",
+    answers: { subject: "English" }, consent: true,
+  };
+  // The dedicated hiring route is deliberately unconfigured in this mock run.
+  assert.equal((await post(teacherFixture, "/api/recruitment-leads")).status, 503);
+  assert.equal(received.length, beforeRecruitment);
+  assert.equal((await post(teacherFixture)).status, 400);
+  assert.equal(received.length, beforeRecruitment);
   const beforeTrap = received.length;
   assert.equal((await post({ ...cases[0], request_key: randomUUID(), website: "filled-by-bot" })).status, 200);
   assert.equal(received.length, beforeTrap);

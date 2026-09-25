@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type LeadFormState = {
   name: string;
@@ -32,7 +33,7 @@ const initialForm: LeadFormState = {
   website: "",
 };
 
-export function OnlineLeadForm() {
+export function OnlineLeadForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "campaign_adult_lead_v1" } }) {
   const router = useRouter();
   const inquiry = useInquirySubmission();
   const [form, setForm] = useState<LeadFormState>(initialForm);
@@ -78,7 +79,7 @@ export function OnlineLeadForm() {
     setSubmitting(true);
     try {
       const accepted = await inquiry.submit({
-        form_key: "online_english",
+        form_key: crmFormKey(campaign),
         contact: { name: form.name, phone: form.phone, email: form.email },
         answers: { learner_type: form.learnerType, program_interest: form.programInterest, objective: form.objective, current_level: form.currentLevel, availability: form.availability },
         consent: form.privacyConsent,
