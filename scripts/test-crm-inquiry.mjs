@@ -153,13 +153,24 @@ try {
     { utm_campaign: "misplaced" }, { fbclid: "misplaced" }, { crm_contact_id: "internal" },
     { campaign_id: "technical" }, { turnstileToken: "technical" }, { request_key: "technical" },
     { raw_payload: "technical" }, { ["x".repeat(65)]: "long key" },
-    { school_type: "x".repeat(1001) }, { learning_goals: Array(11).fill("goal") },
+    { school_type: "x".repeat(2001) }, { learning_goals: Array(11).fill("goal") },
     { nested: { a: 1 } },
     Object.fromEntries(Array.from({ length: 30 }, (_, index) => [`question_${index}`, "value"])),
   ];
   for (const extra of unsafeAnswers) {
     const before = received.length;
     assert.equal((await post({ ...cases[5], request_key: randomUUID(), answers: { ...cases[5].answers, ...extra } })).status, 400);
+    assert.equal(received.length, before);
+  }
+  for (const [source, key] of [[cases[0], "message"], [cases[5], "biggest_difficulty"]]) {
+    const acceptedInput = { ...source, request_key: randomUUID(), answers: { ...source.answers, [key]: "x".repeat(2000) } };
+    assert.equal((await post(acceptedInput)).status, 200);
+    assert.equal(received.at(-1).body.answers[key], "x".repeat(2000));
+    const before = received.length;
+    const rejectedInput = { ...source, request_key: randomUUID(), answers: { ...source.answers, [key]: "x".repeat(2001) } };
+    const rejected = await post(rejectedInput);
+    assert.equal(rejected.status, 400);
+    assert.deepEqual(await rejected.json(), { error: "Vérifiez vos informations." });
     assert.equal(received.length, before);
   }
   const beforeRecruitment = received.length;

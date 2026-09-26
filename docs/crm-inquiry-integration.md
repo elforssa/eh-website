@@ -57,8 +57,8 @@ The CRM payload has no separate answer-label field; use readable snake-case
 keys, and let the CRM use its configured label or readable key fallback.
 
 The website rejects unsafe answers instead of silently dropping them: at most
-30 keys, lowercase snake-case keys up to 64 characters, strings up to 1,000
-characters (4,000 for `message`), arrays of up to 10 strings of 200 characters
+30 keys, lowercase snake-case keys up to 64 characters, answer strings up to 2,000
+characters (including `message` and flexible campaign answers), arrays of up to 10 strings of 200 characters
 each, and finite bounded numbers. Technical, attribution, tracking, token,
 identifier, browser metadata, and raw-payload keys are rejected as answers.
 Attribution remains in the separate `attribution` object.

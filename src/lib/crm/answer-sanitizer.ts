@@ -4,7 +4,7 @@ export type SanitizedAnswers = Record<string, AnswerValue>;
 export const answerLimits = {
   count: 30,
   keyLength: 64,
-  stringLength: 1000,
+  stringLength: 2000,
   arrayLength: 10,
   arrayItemLength: 200,
 } as const;
@@ -39,7 +39,7 @@ export function sanitizeAnswers(raw: unknown): SanitizedAnswers | null {
     if (!isSafeAnswerKey(key)) return null;
     if (typeof value === "string") {
       const cleaned = value.trim();
-      if (cleaned.length > (key === "message" ? 4000 : answerLimits.stringLength)) return null;
+      if (cleaned.length > answerLimits.stringLength) return null;
       answers[key] = cleaned;
     } else if (typeof value === "number") {
       if (!Number.isFinite(value) || Math.abs(value) > 1_000_000_000) return null;

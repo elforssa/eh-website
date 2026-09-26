@@ -10,7 +10,10 @@ for (const key of ["utm_source", "fbclid", "fbc", "fbp", "landing_page", "referr
   assert.equal(sanitizeAnswers({ program_interest: "English", [key]: "unsafe" }), null, key);
 }
 assert.equal(sanitizeAnswers({ ["x".repeat(65)]: "value" }), null);
-assert.equal(sanitizeAnswers({ school_type: "x".repeat(1001) }), null);
+for (const key of ["message", "biggest_difficulty"]) {
+  assert.equal(sanitizeAnswers({ [key]: "x".repeat(2000) })?.[key], "x".repeat(2000), key);
+  assert.equal(sanitizeAnswers({ [key]: "x".repeat(2001) }), null, key);
+}
 assert.equal(sanitizeAnswers({ learning_goals: Array(11).fill("goal") }), null);
 assert.equal(sanitizeAnswers(Object.fromEntries(Array.from({ length: 31 }, (_, i) => [`question_${i}`, "value"]))), null);
 assert.equal(sanitizeAnswers({ nested: { unsafe: true } }), null);
