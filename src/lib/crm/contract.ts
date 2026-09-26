@@ -27,6 +27,7 @@ export type InquiryPayload = {
   answers: Record<string, AnswerValue>;
   attribution?: Attribution;
   consent: true;
+  turnstileToken?: string;
 };
 
 export function prepareInquiry(raw: unknown, siteKey: string):
@@ -49,6 +50,7 @@ export function prepareInquiry(raw: unknown, siteKey: string):
   const contact = { name, ...(phone ? { phone } : {}), ...(address ? { email: address } : {}) };
   const answers = sanitizeAnswers(body.answers);
   if (!answers) return { ok: false, status: 400 };
+  if (typeof body.turnstileToken !== "string" || !body.turnstileToken || body.turnstileToken.length > 2048) return { ok: false, status: 400 };
   for (const key of ["learner_name", "objective", "current_level", "availability", "learner_type"] as const) {
     const value = answers[key];
     if (value !== undefined && (typeof value !== "string" || value.length > 200)) return { ok: false, status: 400 };
@@ -88,6 +90,7 @@ export function prepareInquiry(raw: unknown, siteKey: string):
 
   return { ok: true, honeypot: false, value: {
     site_key: siteKey, form_key: formKey, request_key: field(body.request_key), contact, answers,
+    turnstileToken: body.turnstileToken,
     ...(Object.keys(attribution).length ? { attribution } : {}), consent: true,
   } };
 }

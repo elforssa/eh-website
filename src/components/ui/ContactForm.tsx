@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useInquirySubmission, InquiryError } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryTurnstile } from "./InquiryTurnstile";
 import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type FormState = {
@@ -170,6 +171,7 @@ export function ContactForm({ campaign }: { campaign: CrmWorkflow & { formSchema
       </div>
 
       <InquiryConsent checked={form.privacyConsent} onChange={(privacyConsent) => { inquiry.invalidate(); setErrors((current) => ({ ...current, privacyConsent: undefined })); setForm((current) => ({ ...current, privacyConsent })); }} error={errors.privacyConsent} />
+      <InquiryTurnstile ref={inquiry.turnstileRef} />
 
       {serverError && (
         <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">

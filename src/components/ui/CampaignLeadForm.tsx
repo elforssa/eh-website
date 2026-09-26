@@ -6,6 +6,7 @@ import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { answerLimits, isSafeAnswerKey } from "@/lib/crm/answer-sanitizer";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryTurnstile } from "./InquiryTurnstile";
 
 type CampaignConfig = CrmWorkflow & {
   formSchema: "campaign_parent_lead_v1" | "campaign_adult_lead_v1";
@@ -97,6 +98,7 @@ export function CampaignLeadForm({ campaign }: { campaign: CampaignConfig }) {
         : <input className="mt-2 w-full rounded-xl border p-3" type={question.inputType === "number" ? "number" : "text"} value={String(answers[question.key] || "")} onChange={(e) => { inquiry.invalidate(); setAnswers((current) => ({ ...current, [question.key]: e.target.value })); }} />}
     </label>)}
     <InquiryConsent checked={consent} onChange={(value) => { inquiry.invalidate(); setConsent(value); }} error={!consent && error ? error : undefined} />
+    <InquiryTurnstile ref={inquiry.turnstileRef} />
     {error && consent && <p role="alert" className="text-red-600">{error}</p>}
     <button disabled={submitting} className="rounded-full bg-red-accent px-6 py-3 font-bold text-white disabled:opacity-70">{submitting ? "Envoi…" : "Envoyer ma demande"}</button>
   </form>;
