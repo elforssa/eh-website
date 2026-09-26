@@ -1,3 +1,4 @@
+import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { BadgeCheck, MessageCircle, Target, UserRoundCheck, UsersRound } from "lucide-react";
@@ -107,7 +108,7 @@ export default function EnglishOnlineLandingPage() {
                   Répondez a quelques questions. Nous vous contactons pour proposer le format en ligne le plus adapté.
                 </p>
               </div>
-              <OnlineLeadForm />
+              <OnlineLeadForm campaign={{ destination: "crm", formSchema: "campaign_adult_lead_v1", visibleQuestions: ["learner_type", "program_interest", "objective", "current_level", "availability"] } satisfies CrmWorkflow} />
             </div>
           </div>
         </div>

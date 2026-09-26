@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
+import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
+import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type LeadFormState = {
   name: string;
@@ -13,29 +16,8 @@ type LeadFormState = {
   objective: string;
   currentLevel: string;
   availability: string;
+  privacyConsent: boolean;
   website: string;
-};
-
-type AttributionState = {
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_campaign_name?: string;
-  utm_adset?: string;
-  utm_adset_name?: string;
-  utm_content?: string;
-  utm_ad_name?: string;
-  utm_term?: string;
-  placement?: string;
-  fbclid?: string;
-  landing_page?: string;
-  form_page?: string;
-  referrer?: string;
-};
-
-type MetaTrackingState = {
-  fbp?: string;
-  fbc?: string;
 };
 
 const initialForm: LeadFormState = {
@@ -47,97 +29,17 @@ const initialForm: LeadFormState = {
   objective: "",
   currentLevel: "",
   availability: "",
+  privacyConsent: false,
   website: "",
 };
 
-const attributionKeys = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_campaign_name",
-  "utm_adset",
-  "utm_adset_name",
-  "utm_content",
-  "utm_ad_name",
-  "utm_term",
-  "placement",
-  "fbclid",
-] as const;
-const storageKey = "english_hills_ad_attribution";
-
-function readAttribution(): AttributionState {
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl: AttributionState = {};
-
-  attributionKeys.forEach((key) => {
-    const value = params.get(key);
-    if (value) fromUrl[key] = value.slice(0, 500);
-  });
-
-  let saved: AttributionState = {};
-  try {
-    saved = JSON.parse(window.localStorage.getItem(storageKey) || "{}");
-  } catch {
-    saved = {};
-  }
-
-  const hasFreshAttribution = Object.keys(fromUrl).length > 0;
-  const attribution = {
-    ...saved,
-    ...fromUrl,
-    landing_page: hasFreshAttribution ? window.location.href : saved.landing_page || window.location.href,
-    form_page: window.location.href,
-    referrer: saved.referrer || document.referrer || undefined,
-  };
-
-  if (hasFreshAttribution) {
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(attribution));
-    } catch {
-      // Attribution is useful, but the lead form must keep working without it.
-    }
-  }
-
-  return attribution;
-}
-
-function readCookie(name: string) {
-  return document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${name}=`))
-    ?.split("=")
-    .slice(1)
-    .join("=");
-}
-
-function readMetaTracking(attribution: AttributionState): MetaTrackingState {
-  const fbp = readCookie("_fbp");
-  const fbcFromCookie = readCookie("_fbc");
-
-  if (fbcFromCookie || !attribution.fbclid) {
-    return {
-      fbp,
-      fbc: fbcFromCookie,
-    };
-  }
-
-  return {
-    fbp,
-    fbc: `fb.1.${Date.now()}.${attribution.fbclid}`,
-  };
-}
-
-export function OnlineLeadForm() {
+export function OnlineLeadForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "campaign_adult_lead_v1" } }) {
   const router = useRouter();
+  const inquiry = useInquirySubmission();
   const [form, setForm] = useState<LeadFormState>(initialForm);
-  const [attribution, setAttribution] = useState<AttributionState>({});
   const [errors, setErrors] = useState<Partial<Record<keyof LeadFormState, string>>>({});
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    setAttribution(readAttribution());
-  }, []);
 
   const validate = () => {
     const nextErrors: Partial<Record<keyof LeadFormState, string>> = {};
@@ -153,12 +55,14 @@ export function OnlineLeadForm() {
     if (!form.objective.trim()) nextErrors.objective = "Veuillez choisir votre objectif.";
     if (!form.currentLevel.trim()) nextErrors.currentLevel = "Veuillez choisir votre niveau.";
     if (!form.availability.trim()) nextErrors.availability = "Veuillez choisir une disponibilite.";
+    if (!form.privacyConsent) nextErrors.privacyConsent = "Veuillez accepter le traitement de votre demande.";
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    inquiry.invalidate();
     const { id, value } = e.target;
     setForm((current) => ({ ...current, [id]: value }));
     if (errors[id as keyof LeadFormState]) {
@@ -168,38 +72,24 @@ export function OnlineLeadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (inquiry.isPending()) return;
     setServerError("");
     if (!validate()) return;
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/ad-leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          leadSource: "online_landing",
-          locationConfirmed: true,
-          attribution,
-          metaTracking: readMetaTracking(attribution),
-        }),
+      const accepted = await inquiry.submit({
+        form_key: crmFormKey(campaign),
+        contact: { name: form.name, phone: form.phone, email: form.email },
+        answers: { learner_type: form.learnerType, program_interest: form.programInterest, objective: form.objective, current_level: form.currentLevel, availability: form.availability },
+        consent: form.privacyConsent,
+        website: form.website,
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setServerError(data.error || "Une erreur est survenue. Veuillez réessayer.");
-        return;
-      }
-
-      if (!data.leadId || !data.thankYouToken) {
-        setServerError("Votre demande a été reçue, mais la redirection a échoué. Veuillez nous contacter sur WhatsApp.");
-        return;
-      }
-
+      if (!accepted) return;
       setForm(initialForm);
-      router.push(`/merci?lead_id=${encodeURIComponent(data.leadId)}&token=${encodeURIComponent(data.thankYouToken)}`);
-    } catch {
-      setServerError("Erreur réseau. Vérifiez votre connexion et reessayez.");
+      router.push("/merci");
+    } catch (error) {
+      setServerError(error instanceof InquiryError ? error.message : "Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setSubmitting(false);
     }
@@ -324,6 +214,8 @@ export function OnlineLeadForm() {
           options={["Matin (8h-12h)", "Après-midi (12h-17h)", "Soir (17h-21h)", "Week-end"]}
         />
       </div>
+
+      <InquiryConsent checked={form.privacyConsent} onChange={(privacyConsent) => { inquiry.invalidate(); setErrors((current) => ({ ...current, privacyConsent: undefined })); setForm((current) => ({ ...current, privacyConsent })); }} error={errors.privacyConsent} />
 
       {serverError && (
         <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">

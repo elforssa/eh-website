@@ -3,25 +3,31 @@
 import { useState } from "react";
 import { Button } from "./Button";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { useInquirySubmission, InquiryError } from "@/lib/crm/client";
+import { InquiryConsent } from "./InquiryConsent";
+import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type FormState = {
   name: string;
   email: string;
   program: string;
   message: string;
+  privacyConsent: boolean;
+  website: string;
 };
 
-const initialForm: FormState = { name: "", email: "", program: "Renseignement général", message: "" };
+const initialForm: FormState = { name: "", email: "", program: "Renseignement général", message: "", privacyConsent: false, website: "" };
 
-export function ContactForm() {
+export function ContactForm({ campaign }: { campaign: CrmWorkflow & { formSchema: "general_contact_v1" } }) {
+  const inquiry = useInquirySubmission();
   const [form, setForm] = useState<FormState>(initialForm);
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState("");
 
   const validate = (): boolean => {
-    const newErrors: Partial<FormState> = {};
+    const newErrors: Partial<Record<keyof FormState, string>> = {};
     if (!form.name.trim()) newErrors.name = "Votre nom est requis.";
     if (!form.email.trim()) {
       newErrors.email = "Votre adresse e-mail est requise.";
@@ -29,11 +35,13 @@ export function ContactForm() {
       newErrors.email = "Veuillez entrer une adresse e-mail valide.";
     }
     if (!form.message.trim()) newErrors.message = "Votre message est requis.";
+    if (!form.privacyConsent) newErrors.privacyConsent = "Veuillez accepter le traitement de votre demande.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    inquiry.invalidate();
     const { id, value } = e.target;
     setForm(prev => ({ ...prev, [id]: value }));
     if (errors[id as keyof FormState]) {
@@ -43,25 +51,24 @@ export function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (inquiry.isPending()) return;
     setServerError("");
     if (!validate()) return;
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      const accepted = await inquiry.submit({
+        form_key: crmFormKey(campaign),
+        contact: { name: form.name, email: form.email },
+        answers: { program_interest: form.program, message: form.message },
+        consent: form.privacyConsent,
+        website: form.website,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setServerError(data.error || "Une erreur est survenue. Veuillez réessayer.");
-      } else {
-        setSuccess(true);
-        setForm(initialForm);
-      }
-    } catch {
-      setServerError("Erreur réseau. Vérifiez votre connexion et réessayez.");
+      if (!accepted) return;
+      setSuccess(true);
+      setForm(initialForm);
+    } catch (error) {
+      setServerError(error instanceof InquiryError ? error.message : "Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setSubmitting(false);
     }
@@ -75,7 +82,7 @@ export function ContactForm() {
         </div>
         <h3 className="text-2xl font-bold text-navy mb-3">Message envoyé !</h3>
         <p className="text-gray-600 mb-8 max-w-sm">
-          Merci pour votre message. Nous vous répondrons dans les 24 heures.
+          Merci. Votre demande a bien été reçue. Notre équipe vous recontactera au sujet de votre demande.
         </p>
         <button
           onClick={() => setSuccess(false)}
@@ -89,6 +96,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      <input id="website" value={form.website} onChange={handleChange} className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
       <div className="space-y-2">
         <label htmlFor="name" className="block text-sm font-medium text-navy">
           Nom <span aria-hidden="true">*</span>
@@ -160,6 +168,8 @@ export function ContactForm() {
         />
         {errors.message && <p id="message-error" role="alert" className="text-red-600 text-xs mt-1">{errors.message}</p>}
       </div>
+
+      <InquiryConsent checked={form.privacyConsent} onChange={(privacyConsent) => { inquiry.invalidate(); setErrors((current) => ({ ...current, privacyConsent: undefined })); setForm((current) => ({ ...current, privacyConsent })); }} error={errors.privacyConsent} />
 
       {serverError && (
         <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">

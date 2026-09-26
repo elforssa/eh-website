@@ -1,3 +1,4 @@
+import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { BookOpenCheck, CalendarDays, CheckCircle2, Clock3, MapPin, School, UsersRound } from "lucide-react";
@@ -69,11 +70,11 @@ export default function MiseANiveauLandingPage() {
             </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-normal text-navy-deep md:text-6xl lg:text-7xl">
-              Préparez la rentrée d'anglais de votre enfant avec confiance.
+              Préparez la rentrée d&apos;anglais de votre enfant avec confiance.
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-600 md:text-xl">
-              Un programme de mise à niveau pré-rentrée pour consolider les acquis, renforcer l'oral et aider votre enfant à commencer l'année scolaire plus sereinement.
+              Un programme de mise à niveau pré-rentrée pour consolider les acquis, renforcer l&apos;oral et aider votre enfant à commencer l&apos;année scolaire plus sereinement.
             </p>
 
             <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
@@ -107,10 +108,10 @@ export default function MiseANiveauLandingPage() {
                 <p className="text-sm font-black uppercase tracking-[0.16em] text-red-accent">Pré-rentrée 2026</p>
                 <h2 className="mt-2 text-2xl font-black text-navy-deep">Réserver une place</h2>
                 <p className="mt-2 text-sm leading-6 text-gray-600">
-                  Laissez vos coordonnées, le nombre d'enfants et leur âge. Notre équipe vous rappelle pour confirmer le groupe adapté.
+                  Laissez vos coordonnées, le nombre d&apos;enfants et leur âge. Notre équipe vous rappelle pour confirmer le groupe adapté.
                 </p>
               </div>
-              <MiseANiveauLeadForm />
+              <MiseANiveauLeadForm campaign={{ destination: "crm", formSchema: "campaign_parent_lead_v1", programInterest: "Cours de mise à niveau", visibleQuestions: ["children_count", "learner_ages", "location_confirmed"] } satisfies CrmWorkflow} />
             </div>
           </div>
         </div>

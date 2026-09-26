@@ -1,3 +1,4 @@
+import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ui/ContactForm";
 
@@ -78,7 +79,7 @@ export default function ContactPage() {
 
           <div className="bg-surface rounded-3xl p-8 md:p-10">
             <h2 className="text-2xl font-bold text-navy mb-6">Envoyez-nous un message</h2>
-            <ContactForm />
+            <ContactForm campaign={{ destination: "crm", formSchema: "general_contact_v1", visibleQuestions: ["program_interest", "message"] } satisfies CrmWorkflow} />
           </div>
 
         </div>
