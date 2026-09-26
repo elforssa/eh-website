@@ -28,38 +28,36 @@ export async function POST(req: NextRequest) {
   if (!prepared.ok) return NextResponse.json({ error: "Vérifiez vos informations." }, { status: prepared.status });
   if (prepared.honeypot) return NextResponse.json({ success: true });
 
-  // The CRM deduplicates this stable request_key. Retry only transient failures.
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Origin: canonicalOrigin },
-        body: JSON.stringify(prepared.value),
-        cache: "no-store",
-        signal: AbortSignal.timeout(7000),
-      });
-      if (response.ok) {
-        // Compatibility delivery is bounded and never changes CRM acceptance.
-        await runLegacyMetaCompatibility(
-          process.env.CRM_LEGACY_META_CAPI_ENABLED,
-          () => sendExistingMetaLead(req, prepared.value),
-          (error) => console.error("Compatibility Meta CAPI delivery failed", error),
-        );
-        const accepted = NextResponse.json({ success: true });
-        if (prepared.value.form_key !== "general_contact_v1") {
-          accepted.cookies.set(receiptCookie, makeReceipt(prepared.value.request_key), {
-            httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax",
-            path: "/", maxAge: 600,
-          });
-        }
-        return accepted;
+  // Turnstile tokens are single-use. Browser retries retain request_key but
+  // execute a fresh challenge before making another network submission.
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: canonicalOrigin },
+      body: JSON.stringify(prepared.value),
+      cache: "no-store",
+      signal: AbortSignal.timeout(7000),
+    });
+    if (response.ok) {
+      // Compatibility delivery is bounded and never changes CRM acceptance.
+      await runLegacyMetaCompatibility(
+        process.env.CRM_LEGACY_META_CAPI_ENABLED,
+        () => sendExistingMetaLead(req, prepared.value),
+        (error) => console.error("Compatibility Meta CAPI delivery failed", error),
+      );
+      const accepted = NextResponse.json({ success: true });
+      if (prepared.value.form_key !== "general_contact_v1") {
+        accepted.cookies.set(receiptCookie, makeReceipt(prepared.value.request_key), {
+          httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax",
+          path: "/", maxAge: 600,
+        });
       }
-      if (response.status === 429) return NextResponse.json({ error: "Trop de tentatives." }, { status: 429 });
-      if (response.status === 400 || response.status === 422) return NextResponse.json({ error: "Vérifiez vos informations." }, { status: 422 });
-      if (response.status < 500 || attempt === 1) break;
-    } catch {
-      if (attempt === 1) break;
+      return accepted;
     }
-  }
+    if (response.status === 429) return NextResponse.json({ error: "Trop de tentatives." }, { status: 429 });
+    if (response.status === 400 || response.status === 403 || response.status === 422) {
+      return NextResponse.json({ error: "Vérifiez vos informations." }, { status: 422 });
+    }
+  } catch { /* An uncertain response must be retried with a fresh token. */ }
   return NextResponse.json({ error: "Service temporairement indisponible." }, { status: 503 });
 }

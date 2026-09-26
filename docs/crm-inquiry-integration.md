@@ -13,6 +13,8 @@ Configure these server-only variables before deployment:
 - `CRM_INQUIRY_ENDPOINT=https://admin.english-hills.com/api/public/crm-inquiry`
 - `CRM_WEBSITE_SITE_KEY=english-hills-website`
 - `CRM_WEBSITE_RECEIPT_SECRET`: a random value of at least 32 characters
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: the public widget key configured for
+  `www.english-hills.com` (required for education inquiry submission)
 
 The accepted CRM form keys are `general_contact_v1`, `campaign_parent_lead_v1`,
 and `campaign_adult_lead_v1`. The CRM endpoint must accept the canonical Origin and dedupe
@@ -103,10 +105,11 @@ A; the adapter checks that column before appending. Concurrent requests can
 still race between lookup and append because Google Sheets has no atomic
 unique key. Keep this limitation in mind for high-volume campaigns.
 
-The website responds successfully only after a 2xx CRM response. It retries
-transient failures once using the identical payload and UUID. A browser retry
-after an uncertain response also uses the identical payload and UUID until the
-visitor changes a field. Neither the browser response nor the thank-you URL
+The website responds successfully only after a 2xx CRM response. Each network
+submission uses one freshly executed Turnstile token. After an uncertain
+response, a visitor retry uses a new token with the same prepared business
+payload and UUID until a field changes. The server does not replay a potentially
+consumed token. Neither the browser response nor the thank-you URL
 contains CRM IDs. No student, enrollment, or payment API is called.
 
 ## Compatibility delivery
@@ -145,11 +148,13 @@ when an inquiry form loads. `_fbp` and `_fbc` are read from actual cookies;
 
 All four forms have an unchecked required inquiry-consent checkbox with a
 privacy-policy link. Location checkboxes remain separate. The campaign
-honeypots are preserved and Contact has the same protection. No Turnstile
-validation or bypass was changed. A preview test works if CRM Turnstile
-verification is unconfigured. If `TURNSTILE_SECRET_KEY` is configured in admin
-production, preview-host tokens cannot meet the canonical `www` hostname
-requirement; use another controlled activation/test method in that case.
+honeypots are preserved and Contact has the same protection. The shared inquiry
+widget executes action `crm_inquiry` on submit and passes `turnstileToken`
+outside `answers` to the website adapter. Admin Production validates it using
+its server-only `TURNSTILE_SECRET_KEY` and requires the `www.english-hills.com`
+hostname. Preview-host tokens cannot meet that canonical hostname requirement.
+Keep the CRM connection disabled until the public site key is configured and
+the controlled test is ready.
 
 ## Local verification
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryTurnstile } from "./InquiryTurnstile";
 import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
 type LeadFormState = {
@@ -216,6 +217,7 @@ export function OnlineLeadForm({ campaign }: { campaign: CrmWorkflow & { formSch
       </div>
 
       <InquiryConsent checked={form.privacyConsent} onChange={(privacyConsent) => { inquiry.invalidate(); setErrors((current) => ({ ...current, privacyConsent: undefined })); setForm((current) => ({ ...current, privacyConsent })); }} error={errors.privacyConsent} />
+      <InquiryTurnstile ref={inquiry.turnstileRef} />
 
       {serverError && (
         <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">

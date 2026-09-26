@@ -47,7 +47,7 @@ async function post(body, path = "/api/crm-inquiry") {
   });
 }
 function draft(form_key, contact, answers) {
-  return { request_key: randomUUID(), form_key, contact, answers, consent: true, website: "", attribution: {
+  return { request_key: randomUUID(), form_key, contact, answers, consent: true, website: "", turnstileToken: "local-mock-token", attribution: {
     utm_source: "test", landing_page: "https://www.english-hills.com/contact?email=private@example.com",
     referrer: "https://example.org/path?phone=1234567890",
   } };
@@ -64,6 +64,10 @@ try {
 
   for (const path of ["/contact", "/anglais-casablanca", "/anglais-en-ligne", "/mise-a-niveau"]) {
     const page = await fetch(base + path);
+    const csp = page.headers.get("content-security-policy") || "";
+    for (const directive of ["script-src", "connect-src", "frame-src"]) {
+      assert.match(csp, new RegExp(`${directive}[^;]*https://challenges\\.cloudflare\\.com`));
+    }
     const html = await page.text();
     assert.match(html, /J’accepte que English Hills utilise mes coordonnées/);
     assert.match(html, /Politique de confidentialité/);
@@ -120,6 +124,7 @@ try {
     assert.equal(sent.body.site_key, "english-hills-website");
     assert.equal(sent.body.form_key, input.form_key);
     assert.equal(sent.body.request_key, input.request_key);
+    assert.equal(sent.body.turnstileToken, input.turnstileToken);
     assert.deepEqual(sent.body.contact, input.contact);
     assert.deepEqual(sent.body.answers, input.answers);
     assert.equal(sent.body.consent, true);
@@ -138,6 +143,8 @@ try {
   }
 
   const invalids = [
+    { ...cases[0], request_key: randomUUID(), turnstileToken: undefined },
+    { ...cases[0], request_key: randomUUID(), turnstileToken: "x".repeat(2049) },
     { ...cases[0], request_key: randomUUID(), consent: false },
     { ...cases[0], request_key: randomUUID(), contact: { name: "Only a name" } },
     { ...cases[3], request_key: randomUUID(), answers: { ...cases[3].answers, children_count: 0 } },
@@ -195,14 +202,19 @@ try {
   mode = "fail-once";
   failedOnce = false;
   const retryInput = { ...cases[0], request_key: randomUUID() };
-  assert.equal((await post(retryInput)).status, 200);
-  assert.deepEqual(received.at(-1).body, received.at(-2).body);
+  assert.equal((await post(retryInput)).status, 503);
+  const retry = { ...retryInput, turnstileToken: "fresh-local-mock-token" };
+  assert.equal((await post(retry)).status, 200);
+  assert.equal(received.at(-1).body.request_key, received.at(-2).body.request_key);
+  assert.notEqual(received.at(-1).body.turnstileToken, received.at(-2).body.turnstileToken);
+  assert.deepEqual(received.at(-1).body.answers, received.at(-2).body.answers);
   mode = "fail";
   assert.equal((await post({ ...cases[0], request_key: randomUUID() })).status, 503);
   mode = "timeout";
   const timeoutInput = { ...cases[0], request_key: randomUUID() };
   assert.equal((await post(timeoutInput)).status, 503);
-  assert.deepEqual(received.at(-1).body, received.at(-2).body);
+  assert.equal(received.at(-1).body.request_key, timeoutInput.request_key);
+  assert.equal(received.at(-2).body.request_key === timeoutInput.request_key, false);
   mode = "ok";
 
   const direct = await fetch(base + "/api/crm-inquiry/thank-you", { method: "POST" });
