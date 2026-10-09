@@ -4,13 +4,6 @@
 
 export type ValueOf<T extends readonly { value: string }[]> = T[number]["value"];
 
-export const AVAILABILITY_SLOTS = [
-  { value: "WEEKDAY_MORNING", label: "Weekday mornings (09:00–13:00)" },
-  { value: "WEEKDAY_AFTERNOON", label: "Weekday afternoons (13:00–17:00)" },
-  { value: "WEEKDAY_EVENING", label: "Weekday evenings (17:00–20:00)" },
-  { value: "SATURDAY", label: "Saturdays" },
-] as const;
-
 export const WEEKLY_HOURS = [
   { value: "UNDER_SIX", label: "Less than 6 hours" },
   { value: "SIX_TO_TWELVE", label: "6–12 hours" },
@@ -58,7 +51,6 @@ export const COMMUNICATIVE_EXPERIENCE = [
   { value: "NO", label: "No, not really" },
 ] as const;
 
-export type AvailabilitySlot = ValueOf<typeof AVAILABILITY_SLOTS>;
 export type WeeklyHours = ValueOf<typeof WEEKLY_HOURS>;
 export type StartAvailability = ValueOf<typeof START_AVAILABILITY>;
 export type YearsTeaching = ValueOf<typeof YEARS_TEACHING>;

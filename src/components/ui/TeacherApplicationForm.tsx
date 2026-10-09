@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { ArrowLeft, ArrowRight, Check, Loader2, Upload } from "lucide-react";
 import {
-  AGE_GROUPS, AVAILABILITY_SLOTS, COMMUNICATIVE_EXPERIENCE, ENGLISH_LEVELS, START_AVAILABILITY,
+  AGE_GROUPS, COMMUNICATIVE_EXPERIENCE, ENGLISH_LEVELS, START_AVAILABILITY,
   TEACHING_SETTINGS, WEEKLY_HOURS, YEARS_TEACHING,
 } from "@/lib/teacher-applications/options";
 import { MAX_CV_BYTES, type TeacherApplicationInput } from "@/lib/teacher-applications/rules";
@@ -17,13 +17,13 @@ type UploadedCv = { signature: string; path: string };
 
 const initialForm: FormState = {
   website: "", fullName: "", phone: "", email: "", area: "",
-  canCommuteAlmaz: null, acceptsRate: null, availability: [], weeklyHours: "", startAvailability: "",
+  canCommuteAlmaz: null, acceptsRate: null, weeklyHours: "", startAvailability: "",
   yearsTeaching: "", hasCelta: null, otherQualifications: "", englishLevel: "", ageGroups: [],
   teachingSettings: [], communicativeExperience: "", lastTeachingJob: "", teachingScenario: "",
   videoUrl: "", privacyConsent: false, attribution: {}, metaTracking: {},
 };
 
-const steps = ["Contact & availability", "Qualifications", "Teaching experience", "Video & CV"];
+const steps = ["Contact & hours", "Qualifications", "Teaching experience", "Video & CV"];
 
 function fileSignature(file: File) {
   return `${file.name}:${file.size}:${file.lastModified}`;
@@ -61,7 +61,7 @@ export function TeacherApplicationForm() {
     setError("");
   }
 
-  function toggle<K extends "availability" | "ageGroups" | "teachingSettings">(key: K, value: string) {
+  function toggle<K extends "ageGroups" | "teachingSettings">(key: K, value: string) {
     const list = form[key] as string[];
     update(key, (list.includes(value) ? list.filter((item) => item !== value) : [...list, value]) as FormState[K]);
   }
@@ -72,8 +72,8 @@ export function TeacherApplicationForm() {
       if (form.phone.replace(/\D/g, "").length < 9) return "Please enter a valid phone number.";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return "Please enter a valid email address.";
       if (form.area.trim().length < 2) return "Please tell us which area of Casablanca you live in.";
-      if (form.canCommuteAlmaz === null || form.acceptsRate === null || !form.weeklyHours || !form.startAvailability || form.availability.length === 0) {
-        return "Please answer all the availability questions.";
+      if (form.canCommuteAlmaz === null || form.acceptsRate === null || !form.weeklyHours || !form.startAvailability) {
+        return "Please answer all the questions.";
       }
     }
     if (currentStep === 1 && (!form.yearsTeaching || form.hasCelta === null || !form.englishLevel)) {
@@ -185,7 +185,6 @@ export function TeacherApplicationForm() {
             </div>
             <RadioQuestion name="commute" label="Can you commute to Almaz, Casablanca for your classes?" value={form.canCommuteAlmaz} onChange={(v) => update("canCommuteAlmaz", v)} options={[{ value: true, label: "Yes" }, { value: false, label: "No" }]} />
             <RadioQuestion name="rate" label="The pay is 200 DH per teaching hour, net (after tax). Is that acceptable for you?" value={form.acceptsRate} onChange={(v) => update("acceptsRate", v)} options={[{ value: true, label: "Yes" }, { value: false, label: "No" }]} />
-            <CheckGroup label="When are you available to teach?" hint="Select all that apply." options={AVAILABILITY_SLOTS} selected={form.availability} onToggle={(v) => toggle("availability", v)} />
             <RadioQuestion name="hours" label="How many hours per week can you teach?" value={form.weeklyHours} onChange={(v) => update("weeklyHours", v as FormState["weeklyHours"])} options={WEEKLY_HOURS} />
             <RadioQuestion name="start" label="When could you start?" value={form.startAvailability} onChange={(v) => update("startAvailability", v as FormState["startAvailability"])} options={START_AVAILABILITY} />
           </div>

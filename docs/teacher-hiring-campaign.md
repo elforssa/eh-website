@@ -18,9 +18,9 @@ Light recruitment flow, separate from the CRM and from the receptionist flow.
 
 Reused from the receptionist flow: `GOOGLE_SHEETS_CLIENT_EMAIL`, `GOOGLE_SHEETS_PRIVATE_KEY`, `JOB_APPLICATION_FORM_SECRET`, `NEXT_PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `META_GRAPH_API_VERSION`, Supabase keys. The service account needs Editor access to the spreadsheet.
 
-## Sheet columns (A:AG, 33)
+## Sheet columns (A:AF, 32)
 
-The header row is defined in `src/lib/teacher-applications/sheet-row.ts`. Columns Z:AC (Video Score, Final Score, Review Notes, Next Step) are left blank for manual review. Status is `TO_REVIEW` or `AUTO_REJECTED`; Knockout Reasons lists why (`CANNOT_COMMUTE`, `RATE_DECLINED`, `UNDER_THREE_YEARS`, `NO_CELTA`, `ENGLISH_BELOW_C1`). Automatic Score is out of 80.
+The header row is defined in `src/lib/teacher-applications/sheet-row.ts`. Columns Y:AB (Video Score, Final Score, Review Notes, Next Step) are left blank for manual review. Status is `TO_REVIEW` or `AUTO_REJECTED`; Knockout Reasons lists why (`CANNOT_COMMUTE`, `RATE_DECLINED`, `UNDER_THREE_YEARS`, `NO_CELTA`, `ENGLISH_BELOW_C1`). Automatic Score is out of 80.
 
 ## Ad URL parameters
 
