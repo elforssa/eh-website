@@ -71,7 +71,7 @@ export async function appendTeacherApplication(
       && lookup.values.some((value: unknown[]) => value?.[0] === applicationId);
     if (exists) return "DUPLICATE";
 
-    const appendRange = encodeURIComponent(`${quotedSheet}!A:AG`);
+    const appendRange = encodeURIComponent(`${quotedSheet}!A:AF`);
     const appendResponse = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${appendRange}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
       { method: "POST", headers, body: JSON.stringify({ values: [values] }), signal: controller.signal },

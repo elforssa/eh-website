@@ -9,7 +9,7 @@ const key = "11111111-1111-4111-8111-111111111111";
 const base = {
   submissionKey: key, formToken: "token", website: "",
   fullName: "Test Teacher", phone: "0612345678", email: "Teacher@Example.com", area: "Oulfa",
-  canCommuteAlmaz: true, acceptsRate: true, availability: ["WEEKDAY_EVENING", "SATURDAY"],
+  canCommuteAlmaz: true, acceptsRate: true,
   weeklyHours: "SIX_TO_TWELVE", startAvailability: "IMMEDIATELY", yearsTeaching: "THREE_TO_FIVE",
   hasCelta: true, otherQualifications: "", englishLevel: "C1", ageGroups: ["KIDS", "TEENS"],
   teachingSettings: ["LANGUAGE_CENTER"], communicativeExperience: "YES_REGULARLY",
@@ -26,7 +26,6 @@ assert.ok(result.ok);
 assert.equal(result.value.email, "teacher@example.com");
 assert.equal(validateTeacherApplication({ ...base, website: "bot" }).ok, false);
 assert.equal(validateTeacherApplication({ ...base, hasCelta: null }).ok, false);
-assert.equal(validateTeacherApplication({ ...base, availability: [] }).ok, false);
 assert.equal(validateTeacherApplication({ ...base, teachingScenario: "short" }).ok, false);
 assert.equal(validateTeacherApplication({ ...base, videoUrl: "" }).ok, false);
 assert.equal(validateTeacherApplication({ ...base, privacyConsent: false }).ok, false);
@@ -42,12 +41,12 @@ assert.ok(good.automaticScore > 0 && good.automaticScore <= 80);
 const rejected = scoreTeacherApplication({ ...app, canCommuteAlmaz: false, acceptsRate: false, yearsTeaching: "ONE_TO_THREE", hasCelta: false, englishLevel: "B2_OR_BELOW" });
 assert.equal(rejected.applicationStatus, "AUTO_REJECTED");
 assert.deepEqual(rejected.knockoutReasons, ["CANNOT_COMMUTE", "RATE_DECLINED", "UNDER_THREE_YEARS", "NO_CELTA", "ENGLISH_BELOW_C1"]);
-const maxed = scoreTeacherApplication({ ...app, yearsTeaching: "OVER_FIVE", englishLevel: "C2", communicativeExperience: "YES_REGULARLY", ageGroups: ["KIDS", "TEENS", "ADULTS"], teachingSettings: ["LANGUAGE_CENTER", "SCHOOL"], weeklyHours: "OVER_TWENTY", availability: ["WEEKDAY_MORNING", "WEEKDAY_AFTERNOON", "WEEKDAY_EVENING", "SATURDAY"] });
+const maxed = scoreTeacherApplication({ ...app, yearsTeaching: "OVER_FIVE", englishLevel: "C2", communicativeExperience: "YES_REGULARLY", ageGroups: ["KIDS", "TEENS", "ADULTS"], teachingSettings: ["LANGUAGE_CENTER", "SCHOOL"], weeklyHours: "OVER_TWENTY" });
 assert.equal(maxed.automaticScore, 80);
 
 // Options and rules agree
 for (const [list, allowed] of [
-  [options.AVAILABILITY_SLOTS, ALLOWED_VALUES.availability], [options.WEEKLY_HOURS, ALLOWED_VALUES.weeklyHours],
+  [options.WEEKLY_HOURS, ALLOWED_VALUES.weeklyHours],
   [options.START_AVAILABILITY, ALLOWED_VALUES.startAvailability], [options.YEARS_TEACHING, ALLOWED_VALUES.yearsTeaching],
   [options.ENGLISH_LEVELS, ALLOWED_VALUES.englishLevel], [options.AGE_GROUPS, ALLOWED_VALUES.ageGroups],
   [options.TEACHING_SETTINGS, ALLOWED_VALUES.teachingSettings], [options.COMMUNICATIVE_EXPERIENCE, ALLOWED_VALUES.communicativeExperience],
@@ -102,14 +101,14 @@ const row = buildTeacherSheetRow({
   createdAt: "2026-01-01T00:00:00.000Z", automaticScore: 50, status: "TO_REVIEW", knockoutReasons: [], attribution: app.attribution,
 });
 assert.equal(row.length, TEACHER_SHEET_COLUMN_COUNT);
-assert.equal(row.length, 33);
+assert.equal(row.length, 32);
 assert.equal(row[0], key);
 assert.equal(row[2], "'=HYPERLINK(\"evil\")");
-assert.equal(row[21], '=HYPERLINK("https://x.test/cv?token=a""b","View CV")');
-assert.deepEqual(row.slice(25, 29), ["", "", "", ""]);
-assert.equal(row[29], "123"); // macro campaign name falls back to utm_campaign
-assert.equal(row[31], "Ad 1");
-assert.equal(row[32], "teacher_hiring");
+assert.equal(row[20], '=HYPERLINK("https://x.test/cv?token=a""b","View CV")');
+assert.deepEqual(row.slice(24, 28), ["", "", "", ""]);
+assert.equal(row[28], "123"); // macro campaign name falls back to utm_campaign
+assert.equal(row[30], "Ad 1");
+assert.equal(row[31], "teacher_hiring");
 assert.equal(sheetText("normal"), "normal");
 assert.equal(sheetText("+212"), "'+212");
 

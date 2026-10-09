@@ -2,7 +2,6 @@
 // Deliberately free of runtime imports so it can be unit tested with plain node.
 import type {
   AgeGroup,
-  AvailabilitySlot,
   CommunicativeExperience,
   EnglishLevel,
   StartAvailability,
@@ -24,7 +23,6 @@ export type TeacherApplicationInput = {
   area: string;
   canCommuteAlmaz: boolean | null;
   acceptsRate: boolean | null;
-  availability: AvailabilitySlot[];
   weeklyHours: WeeklyHours | "";
   startAvailability: StartAvailability | "";
   yearsTeaching: YearsTeaching | "";
@@ -66,7 +64,6 @@ export const MAX_CV_BYTES = 5 * 1024 * 1024;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const allowedAvailability: readonly AvailabilitySlot[] = ["WEEKDAY_MORNING", "WEEKDAY_AFTERNOON", "WEEKDAY_EVENING", "SATURDAY"];
 const allowedWeeklyHours: readonly WeeklyHours[] = ["UNDER_SIX", "SIX_TO_TWELVE", "TWELVE_TO_TWENTY", "OVER_TWENTY"];
 const allowedStart: readonly StartAvailability[] = ["IMMEDIATELY", "WITHIN_TWO_WEEKS", "WITHIN_ONE_MONTH", "OVER_ONE_MONTH"];
 const allowedYears: readonly YearsTeaching[] = ["UNDER_ONE", "ONE_TO_THREE", "THREE_TO_FIVE", "OVER_FIVE"];
@@ -76,7 +73,6 @@ const allowedSettings: readonly TeachingSetting[] = ["LANGUAGE_CENTER", "SCHOOL"
 const allowedCommunicative: readonly CommunicativeExperience[] = ["YES_REGULARLY", "SOMETIMES", "NO"];
 
 export const ALLOWED_VALUES = {
-  availability: allowedAvailability,
   weeklyHours: allowedWeeklyHours,
   startAvailability: allowedStart,
   yearsTeaching: allowedYears,
@@ -167,7 +163,6 @@ export function validateTeacherApplication(raw: unknown): ValidationResult {
   const canCommuteAlmaz = booleanOrNull(body.canCommuteAlmaz);
   const acceptsRate = booleanOrNull(body.acceptsRate);
   const hasCelta = booleanOrNull(body.hasCelta);
-  const availability = pickMany(body.availability, allowedAvailability);
   const weeklyHours = pickOne(body.weeklyHours, allowedWeeklyHours);
   const startAvailability = pickOne(body.startAvailability, allowedStart);
   const yearsTeaching = pickOne(body.yearsTeaching, allowedYears);
@@ -178,7 +173,7 @@ export function validateTeacherApplication(raw: unknown): ValidationResult {
 
   if (
     canCommuteAlmaz === null || acceptsRate === null || hasCelta === null
-    || availability.length === 0 || !weeklyHours || !startAvailability
+    || !weeklyHours || !startAvailability
     || !yearsTeaching || !englishLevel || ageGroups.length === 0
     || teachingSettings.length === 0 || !communicativeExperience
   ) {
@@ -213,7 +208,7 @@ export function validateTeacherApplication(raw: unknown): ValidationResult {
     metaTracking,
     value: {
       submissionKey, formToken, fullName, phone, email, area,
-      canCommuteAlmaz, acceptsRate, availability, weeklyHours, startAvailability,
+      canCommuteAlmaz, acceptsRate, weeklyHours, startAvailability,
       yearsTeaching, hasCelta, otherQualifications, englishLevel, ageGroups,
       teachingSettings, communicativeExperience, lastTeachingJob, teachingScenario,
       videoUrl, privacyConsent: true, attribution, metaTracking,
@@ -242,12 +237,11 @@ export function scoreTeacherApplication(application: ValidatedTeacherApplication
   const english = { B2_OR_BELOW: 0, C1: 8, C2: 12, NATIVE: 12 }[application.englishLevel];
   const communicative = { YES_REGULARLY: 15, SOMETIMES: 8, NO: 0 }[application.communicativeExperience];
   const breadth = Math.min(3, application.ageGroups.length) * 2 + Math.min(2, application.teachingSettings.length) * 2;
-  const hours = { UNDER_SIX: 2, SIX_TO_TWELVE: 6, TWELVE_TO_TWENTY: 10, OVER_TWENTY: 10 }[application.weeklyHours];
-  const slots = Math.min(4, application.availability.length) * 2;
+  const hours = { UNDER_SIX: 4, SIX_TO_TWELVE: 10, TWELVE_TO_TWENTY: 18, OVER_TWENTY: 18 }[application.weeklyHours];
   const start = { IMMEDIATELY: 5, WITHIN_TWO_WEEKS: 4, WITHIN_ONE_MONTH: 2, OVER_ONE_MONTH: 0 }[application.startAvailability];
 
   return {
-    automaticScore: years + english + communicative + breadth + hours + slots + start,
+    automaticScore: years + english + communicative + breadth + hours + start,
     knockoutReasons,
     applicationStatus: knockoutReasons.length > 0 ? "AUTO_REJECTED" : "TO_REVIEW",
   };

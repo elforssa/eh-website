@@ -3,7 +3,7 @@ import { consumeRateLimit, getClientIpForMeta, verifyFormToken } from "@/lib/job
 import { createServiceSupabaseClient, JOB_CV_BUCKET } from "@/lib/job-applications/supabase";
 import { appendTeacherApplication, sendTeacherMetaEvent } from "@/lib/teacher-applications/delivery";
 import {
-  AGE_GROUPS, AVAILABILITY_SLOTS, COMMUNICATIVE_EXPERIENCE, ENGLISH_LEVELS, labelFor, labelsFor,
+  AGE_GROUPS, COMMUNICATIVE_EXPERIENCE, ENGLISH_LEVELS, labelFor, labelsFor,
   START_AVAILABILITY, TEACHING_SETTINGS, WEEKLY_HOURS, YEARS_TEACHING,
 } from "@/lib/teacher-applications/options";
 import { makeReceipt, TEACHER_RECEIPT_COOKIE, TEACHER_RECEIPT_TTL_SECONDS } from "@/lib/teacher-applications/receipt";
@@ -86,7 +86,6 @@ export async function POST(req: NextRequest) {
     const row = buildTeacherSheetRow({
       application,
       labels: {
-        availability: labelsFor(AVAILABILITY_SLOTS, application.availability),
         weeklyHours: labelFor(WEEKLY_HOURS, application.weeklyHours),
         startAvailability: labelFor(START_AVAILABILITY, application.startAvailability),
         yearsTeaching: labelFor(YEARS_TEACHING, application.yearsTeaching),

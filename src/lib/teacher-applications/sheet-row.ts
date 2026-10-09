@@ -1,11 +1,11 @@
 // Builds the Google Sheet row for a teacher application. Column order must match
-// the "Applications" tab of the Teacher Applications spreadsheet (A:AG).
+// the "Applications" tab of the Teacher Applications spreadsheet (A:AF).
 // Pure module: no runtime imports.
 import type { Attribution, ValidatedTeacherApplication } from "./rules";
 
 export const TEACHER_SHEET_HEADERS = [
   "Application UUID", "Date", "Candidate", "Phone (WhatsApp)", "Email", "Area",
-  "Can Commute to Almaz", "Accepts 200 DH/h Net", "Availability", "Weekly Hours",
+  "Can Commute to Almaz", "Accepts 200 DH/h Net", "Weekly Hours",
   "Start Date", "Years Teaching", "CELTA", "Other Qualifications", "English Level",
   "Age Groups Taught", "Teaching Settings", "Communicative Method Experience",
   "Last Teaching Job", "Teaching Scenario", "Video Link", "CV", "Automatic Score",
@@ -13,7 +13,7 @@ export const TEACHER_SHEET_HEADERS = [
   "Next Step", "Campaign", "Ad Set", "Ad", "Lead Source",
 ] as const;
 
-export const TEACHER_SHEET_COLUMN_COUNT = TEACHER_SHEET_HEADERS.length; // 33 -> A:AG
+export const TEACHER_SHEET_COLUMN_COUNT = TEACHER_SHEET_HEADERS.length; // 32 -> A:AF
 
 // Stops applicant text from being evaluated as a spreadsheet formula.
 export function sheetText(value: string) {
@@ -32,7 +32,6 @@ function hyperlink(url: string, label: string) {
 }
 
 export type TeacherSheetLabels = {
-  availability: string;
   weeklyHours: string;
   startAvailability: string;
   yearsTeaching: string;
@@ -66,7 +65,6 @@ export function buildTeacherSheetRow(input: TeacherSheetInput): (string | number
     sheetText(a.area),
     yesNo(a.canCommuteAlmaz),
     yesNo(a.acceptsRate),
-    labels.availability,
     labels.weeklyHours,
     labels.startAvailability,
     labels.yearsTeaching,
