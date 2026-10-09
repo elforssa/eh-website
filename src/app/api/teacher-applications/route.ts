@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { consumeRateLimit, getClientIpForMeta, verifyFormToken } from "@/lib/job-applications/security";
 import { createServiceSupabaseClient, JOB_CV_BUCKET } from "@/lib/job-applications/supabase";
 import { appendTeacherApplication, sendTeacherMetaEvent } from "@/lib/teacher-applications/delivery";
@@ -62,24 +62,26 @@ export async function POST(req: NextRequest) {
         error: "Please paste a valid link to your video (Google Drive, YouTube, Loom, Vimeo or Dropbox).",
       }, { status: 400 });
     }
-    const access = await checkVideoAccessible(video, fetch);
+    // Independent checks run together to keep the applicant's wait short.
+    const [access, pdfOk, signed] = await Promise.all([
+      checkVideoAccessible(video, fetch),
+      verifyPdf(application.cvStoragePath, application.cvSizeBytes),
+      createServiceSupabaseClient().storage.from(JOB_CV_BUCKET).createSignedUrl(application.cvStoragePath, CV_SIGNED_URL_TTL_SECONDS),
+    ]);
     if (access === "PRIVATE") {
       return NextResponse.json({
         error: "We cannot open your video. Please set its sharing to \"Anyone with the link\" and try again.",
       }, { status: 400 });
     }
-
-    if (!await verifyPdf(application.cvStoragePath, application.cvSizeBytes)) {
+    if (!pdfOk) {
       await removeUpload(application.cvStoragePath);
       return NextResponse.json({ error: "The selected file is not a valid PDF." }, { status: 400 });
     }
 
     const screening = scoreTeacherApplication(application);
-    const { data: signedCv, error: signedCvError } = await createServiceSupabaseClient().storage
-      .from(JOB_CV_BUCKET)
-      .createSignedUrl(application.cvStoragePath, CV_SIGNED_URL_TTL_SECONDS);
-    if (signedCvError || !signedCv?.signedUrl) {
-      console.error("Teacher CV signed URL error:", signedCvError);
+    const signedCv = signed.data;
+    if (signed.error || !signedCv?.signedUrl) {
+      console.error("Teacher CV signed URL error:", signed.error);
       return NextResponse.json({ error: "Unable to save your application. Please try again." }, { status: 500 });
     }
 
@@ -115,12 +117,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, duplicate: true });
     }
 
-    await sendTeacherMetaEvent({
-      application,
-      attribution,
-      clientIp: getClientIpForMeta(req),
-      userAgent: req.headers.get("user-agent") || undefined,
-      eventSourceUrl: attribution.landing_page || attribution.form_page,
+    // Meta CAPI runs after the response so the applicant does not wait for it.
+    const clientIp = getClientIpForMeta(req);
+    const userAgent = req.headers.get("user-agent") || undefined;
+    after(async () => {
+      await sendTeacherMetaEvent({
+        application,
+        attribution,
+        clientIp,
+        userAgent,
+        eventSourceUrl: attribution.landing_page || attribution.form_page,
+      });
     });
 
     const response = NextResponse.json({ success: true, duplicate: false });
