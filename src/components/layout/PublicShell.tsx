@@ -6,7 +6,7 @@ import { Footer } from './Footer'
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isFocusedLandingFlow = pathname === "/anglais-casablanca" || pathname === "/anglais-en-ligne" || pathname === "/mise-a-niveau" || pathname === "/merci" || pathname === "/recrutement-receptionniste" || pathname === "/merci-candidature";
+  const isFocusedLandingFlow = pathname === "/anglais-casablanca" || pathname === "/anglais-en-ligne" || pathname === "/mise-a-niveau" || pathname === "/merci" || pathname === "/recrutement-receptionniste" || pathname === "/merci-candidature" || pathname === "/recrutement-professeur-anglais" || pathname === "/merci-candidature-professeur";
   // /souvenirs renders its own Header (in its layout) so a banner can sit above it.
   const isSouvenirs = pathname === "/souvenirs";
 
