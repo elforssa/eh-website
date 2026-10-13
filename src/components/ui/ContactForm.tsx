@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useInquirySubmission, InquiryError } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryErrorText } from "./InquiryErrorText";
 import { InquiryTurnstile } from "./InquiryTurnstile";
 import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
@@ -175,7 +176,7 @@ export function ContactForm({ campaign }: { campaign: CrmWorkflow & { formSchema
 
       {serverError && (
         <div role="alert" className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
-          {serverError}
+          <InquiryErrorText message={serverError} />
         </div>
       )}
 

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { NextRequest } from "next/server";
 import type { InquiryPayload } from "./contract";
 import { legacyMetaCapiEnabled } from "./meta-switch";
+import { forwardedClientIp } from "./visitor-signature";
 
 function hash(value: string) {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
@@ -37,7 +38,7 @@ export async function sendExistingMetaLead(req: NextRequest, inquiry: InquiryPay
         fn: firstName ? [hash(firstName)] : undefined,
         ln: lastName ? [hash(lastName)] : undefined,
         external_id: [hash(`${email || "no-email"}:${phone.replace(/[^\d+]/g, "")}`)],
-        client_ip_address: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || undefined,
+        client_ip_address: forwardedClientIp(req),
         client_user_agent: req.headers.get("user-agent") || undefined,
         fbp: attribution.fbp,
         fbc: attribution.fbc,

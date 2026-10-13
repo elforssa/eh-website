@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarCheck2, Loader2 } from "lucide-react";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryErrorText } from "./InquiryErrorText";
 import { InquiryTurnstile } from "./InquiryTurnstile";
 import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 
@@ -208,7 +209,7 @@ export function AdLeadForm({ campaign }: { campaign: CrmWorkflow & { formSchema:
 
       {serverError && (
         <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
-          {serverError}
+          <InquiryErrorText message={serverError} />
         </div>
       )}
 
