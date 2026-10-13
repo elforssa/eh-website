@@ -6,6 +6,7 @@ import { crmFormKey, type CrmWorkflow } from "@/lib/acquisition/workflow";
 import { InquiryError, useInquirySubmission } from "@/lib/crm/client";
 import { answerLimits, isSafeAnswerKey } from "@/lib/crm/answer-sanitizer";
 import { InquiryConsent } from "./InquiryConsent";
+import { InquiryErrorText } from "./InquiryErrorText";
 import { InquiryTurnstile } from "./InquiryTurnstile";
 
 type CampaignConfig = CrmWorkflow & {
@@ -99,7 +100,7 @@ export function CampaignLeadForm({ campaign }: { campaign: CampaignConfig }) {
     </label>)}
     <InquiryConsent checked={consent} onChange={(value) => { inquiry.invalidate(); setConsent(value); }} error={!consent && error ? error : undefined} />
     <InquiryTurnstile ref={inquiry.turnstileRef} />
-    {error && consent && <p role="alert" className="text-red-600">{error}</p>}
+    {error && consent && <p role="alert" className="text-red-600"><InquiryErrorText message={error} /></p>}
     <button disabled={submitting} className="rounded-full bg-red-accent px-6 py-3 font-bold text-white disabled:opacity-70">{submitting ? "Envoi…" : "Envoyer ma demande"}</button>
   </form>;
 }

@@ -15,6 +15,8 @@ Configure these server-only variables before deployment:
 - `CRM_WEBSITE_RECEIPT_SECRET`: a random value of at least 32 characters
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: the public widget key configured for
   `www.english-hills.com` (required for education inquiry submission)
+- `CRM_WEBSITE_PROXY_SECRET` (optional, Production only): signs the visitor IP
+  for the CRM rate limiter. See [Visitor rate-limit signature](#visitor-rate-limit-signature).
 
 The accepted CRM form keys are `general_contact_v1`, `campaign_parent_lead_v1`,
 and `campaign_adult_lead_v1`. The CRM endpoint must accept the canonical Origin and dedupe
@@ -153,16 +155,62 @@ widget executes action `crm_inquiry` on submit and passes `turnstileToken`
 outside `answers` to the website adapter. Admin Production validates it using
 its server-only `TURNSTILE_SECRET_KEY` and requires the `www.english-hills.com`
 hostname. Preview-host tokens cannot meet that canonical hostname requirement.
-Keep the CRM connection disabled until the public site key is configured and
-the controlled test is ready.
+The CRM connection is enabled in Production.
+
+## Visitor rate-limit signature
+
+The CRM rate-limits inquiries per client IP (10 per hour). Its Vercel edge only
+sees this website's function egress IP, never the visitor's, so without this
+header all visitors behind one egress IP share one bucket. When
+`CRM_WEBSITE_PROXY_SECRET` is set, `/api/crm-inquiry` adds one header to the
+server-to-server CRM request:
+
+```
+x-eh-visitor-token: v1.<ts>.<ipb64>.<sig>
+```
+
+- `ts`: Unix seconds at signing, in decimal.
+- `ipb64`: unpadded base64url of the visitor IP. The IP is the first
+  `x-forwarded-for` entry, else `x-real-ip`, as Vercel sets them on this
+  website. It must match `^[0-9A-Fa-f:.]{1,45}$`.
+- `sig`: unpadded base64url of HMAC-SHA256, keyed with the secret, over
+  `v1.<ts>.<ipb64>.<request_key>`. `request_key` is the UUID in the validated
+  request body, so a captured header cannot be reused for another submission.
+
+The header is omitted, and the CRM request is otherwise unchanged, when the
+secret is missing or shorter than 32 characters or no valid IP was read. The
+CRM ignores an absent or invalid header and falls back to its previous keying,
+so a missing or mismatched secret degrades to the shared bucket instead of
+blocking inquiries. Honeypot submissions never reach the CRM. The header and
+the IP are never logged.
+
+Configuration (the owner holds the value):
+
+- Production: server-only, the same value as the admin project's
+  `CRM_WEBSITE_PROXY_SECRET`, at least 32 random characters. Distinct from
+  `CRM_WEBSITE_RECEIPT_SECRET`. Set it only after the admin release that
+  verifies the header, then redeploy (Vercel applies env changes on the next
+  deployment).
+- Preview: leave it unset, so Preview deployments cannot sign for Production.
+- Rollback: remove `CRM_WEBSITE_PROXY_SECRET` from Production and redeploy. The
+  header stops and the CRM returns to its previous keying. No code change is
+  needed.
+
+When the CRM returns 429, the website still returns 429 without a receipt or
+Meta event and logs `[crm-inquiry] upstream 429` with only the `form_key`. The
+form shows the rate-limit message with a WhatsApp link through the existing
+`/contact-camp` redirect, so the WhatsApp URL stays server-side. Those clicks
+are logged in `cta_clicks` with no source, like other untagged links.
 
 ## Local verification
 
 `npm run test:crm-browser-state` checks attribution expiry, replacement,
 sanitization, browser storage, and UUID reuse/change. `npm run test:crm-inquiry`
 starts a loopback-only mock CRM and Next server. It never calls the deployed CRM.
-The latter checks payloads, errors, retry identity, timeout, honeypot, and
-thank-you proof. `npm run test:crm-flexible-answers` checks answer safety and the
+The latter checks payloads, errors, retry identity, timeout, honeypot,
+thank-you proof, the 429 log line, and the signed visitor header with and
+without `CRM_WEBSITE_PROXY_SECRET` (it runs with `--conditions=react-server` so
+the server-only signer can be unit-tested). `npm run test:crm-flexible-answers` checks answer safety and the
 Meta CAPI switch without any Meta request. Run these plus
 `npm run test:recruitment-audit`, `npm run lint`,
 and `npm run build` before activation.

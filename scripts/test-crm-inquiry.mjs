@@ -1,18 +1,73 @@
 import assert from "node:assert/strict";
 import { createServer, request as httpRequest } from "node:http";
 import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
+import { isIPv4 } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
+// Needs --conditions=react-server (see the npm script) so `server-only` loads.
+import { forwardedClientIp, signVisitor, visitorIpFrom, visitorTokenHeaders } from "../src/lib/crm/visitor-signature.ts";
+
+const proxySecret = "a-local-proxy-test-secret-with-more-than-32-characters";
+const requestKey = "11111111-1111-4111-8111-111111111111";
+const withHeaders = (headers) => ({ headers: new Headers(headers) });
+// Independent verifier for the CRM side of the contract.
+function verifyVisitorToken(token, key, secret = proxySecret) {
+  const parts = token.split(".");
+  assert.equal(parts.length, 4);
+  const [version, ts, ipb64, sig] = parts;
+  assert.equal(version, "v1");
+  assert.match(ts, /^\d+$/);
+  assert.equal(sig, createHmac("sha256", secret).update(`${version}.${ts}.${ipb64}.${key}`).digest("base64url"));
+  return { ts: Number(ts), ip: Buffer.from(ipb64, "base64url").toString() };
+}
+
+// Known-answer vectors, computed independently with Python hmac and openssl.
+assert.equal(signVisitor("203.0.113.9", requestKey, "known-answer-proxy-secret-0123456789", 1760000000123),
+  "v1.1760000000.MjAzLjAuMTEzLjk.qvRckfTISqD3KQGQLbv7DLeV9RMy8VLTluutQAssQ9k");
+assert.equal(signVisitor("2001:db8::1", requestKey, "known-answer-proxy-secret-0123456789", 1760000000999),
+  "v1.1760000000.MjAwMTpkYjg6OjE.mRAP1V3_iF3ShD_yo8KStlBK9ES0g_nwEiaz4Ih4FgY");
+for (const [headers, ip] of [
+  [{ "x-forwarded-for": "203.0.113.9, 10.0.0.1" }, "203.0.113.9"],
+  [{ "x-forwarded-for": "2001:db8::1" }, "2001:db8::1"],
+  [{ "x-forwarded-for": "::ffff:203.0.113.9" }, "::ffff:203.0.113.9"],
+  [{ "x-real-ip": "198.51.100.7" }, "198.51.100.7"],
+  [{ "x-forwarded-for": " , 203.0.113.9", "x-real-ip": "198.51.100.7" }, "198.51.100.7"],
+]) {
+  assert.equal(visitorIpFrom(withHeaders(headers)), ip);
+  const now = Date.now();
+  const decoded = verifyVisitorToken(signVisitor(ip, requestKey, proxySecret, now), requestKey);
+  assert.deepEqual(decoded, { ts: Math.floor(now / 1000), ip });
+  assert.throws(() => verifyVisitorToken(signVisitor(ip, requestKey, proxySecret, now), randomUUID()));
+  assert.throws(() => verifyVisitorToken(signVisitor(ip, requestKey, proxySecret, now), requestKey, proxySecret + "x"));
+}
+assert.equal(visitorIpFrom(withHeaders({})), undefined);
+for (const ip of ["unknown", "fe80::1%en0", "[::1]", "1".repeat(46), "203.0.113.9/24", "203.0.113.9<x>"]) {
+  assert.equal(visitorIpFrom(withHeaders({ "x-real-ip": ip })), undefined, ip);
+}
+// The shared reader keeps the Meta CAPI expression unchanged, without the shape check.
+assert.equal(forwardedClientIp(withHeaders({ "x-forwarded-for": "unknown, 10.0.0.1" })), "unknown");
+assert.equal(forwardedClientIp(withHeaders({ "x-real-ip": "unknown" })), "unknown");
+assert.equal(forwardedClientIp(withHeaders({})), undefined);
+const ipv4 = withHeaders({ "x-forwarded-for": "203.0.113.9" });
+assert.deepEqual(Object.keys(visitorTokenHeaders(ipv4, requestKey, "x".repeat(32))), ["x-eh-visitor-token"]);
+assert.equal(verifyVisitorToken(visitorTokenHeaders(ipv4, requestKey, proxySecret)["x-eh-visitor-token"], requestKey).ip, "203.0.113.9");
+for (const secret of [undefined, "", "x".repeat(31)]) assert.deepEqual(visitorTokenHeaders(ipv4, requestKey, secret), {});
+assert.deepEqual(visitorTokenHeaders(withHeaders({}), requestKey, proxySecret), {});
+assert.deepEqual(visitorTokenHeaders(withHeaders({ "x-real-ip": "unknown" }), requestKey, proxySecret), {});
 
 const mockPort = 31387;
 const sitePort = 31388;
+const unsignedSitePorts = [31389, 31390];
 const received = [];
 let mode = "ok";
 let failedOnce = false;
 const mock = createServer(async (req, res) => {
   let body = "";
   for await (const part of req) body += part;
-  received.push({ body: JSON.parse(body), origin: req.headers.origin });
+  received.push({
+    body: JSON.parse(body), origin: req.headers.origin, headers: req.headers, at: Date.now(),
+    token: req.headers["x-eh-visitor-token"], peer: req.socket.remoteAddress, family: req.socket.remoteFamily,
+  });
   if (mode === "fail-once" && !failedOnce) {
     failedOnce = true;
     res.writeHead(503).end();
@@ -24,8 +79,8 @@ const mock = createServer(async (req, res) => {
 });
 await new Promise((resolve) => mock.listen(mockPort, "127.0.0.1", resolve));
 
-const site = spawn("./node_modules/.bin/next", ["start", "-p", String(sitePort)], {
-  env: {
+function startSite(port, secret) {
+  const env = {
     ...process.env,
     CRM_INQUIRY_ENDPOINT: `http://127.0.0.1:${mockPort}/inquiry`,
     CRM_WEBSITE_SITE_KEY: "english-hills-website",
@@ -33,15 +88,42 @@ const site = spawn("./node_modules/.bin/next", ["start", "-p", String(sitePort)]
     CRM_LEGACY_META_CAPI_ENABLED: "false",
     META_CAPI_ACCESS_TOKEN: "",
     NEXT_PUBLIC_META_PIXEL_ID: "",
-  }, stdio: ["ignore", "pipe", "pipe"],
-});
-let siteOutput = "";
-site.stdout.on("data", (data) => { siteOutput += data; });
-site.stderr.on("data", (data) => { siteOutput += data; });
+    CRM_WEBSITE_PROXY_SECRET: secret,
+  };
+  if (secret === undefined) delete env.CRM_WEBSITE_PROXY_SECRET;
+  const child = spawn("./node_modules/.bin/next", ["start", "-p", String(port)], { env, stdio: ["ignore", "pipe", "pipe"] });
+  const started = { child, output: "" };
+  child.stdout.on("data", (data) => { started.output += data; });
+  child.stderr.on("data", (data) => { started.output += data; });
+  return started;
+}
+async function waitForSite(started, siteBase) {
+  for (let n = 0; n < 80; n++) {
+    if (started.child.exitCode !== null) throw Error(started.output);
+    try { const response = await fetch(siteBase + "/contact"); if (response.ok) return; } catch { /* Starting. */ }
+    await delay(250);
+  }
+  assert.fail(`Next server did not start: ${started.output}`);
+}
+const signedSite = startSite(sitePort, proxySecret);
+const unsignedSites = [];
 
 const base = `http://127.0.0.1:${sitePort}`;
-async function post(body, path = "/api/crm-inquiry") {
-  return fetch(base + path, {
+// The client reaches Next over IPv4 loopback and Next synthesises
+// x-forwarded-for from that socket (possibly IPv4-mapped on a dual-stack
+// listener). The mock sees Next's own IPv4 loopback socket.
+const plainIp = (ip) => ip.replace(/^::ffff:(?=\d+\.\d+\.\d+\.\d+$)/i, "");
+function assertSignedVisitor(sent) {
+  assert.ok(sent.token, "x-eh-visitor-token missing");
+  const { ts, ip } = verifyVisitorToken(sent.token, sent.body.request_key);
+  assert.ok(Math.abs(sent.at / 1000 - ts) <= 5, "visitor token timestamp outside 5 s");
+  assert.equal(sent.family, "IPv4");
+  assert.ok(isIPv4(plainIp(ip)), ip);
+  assert.equal(plainIp(ip), plainIp(sent.peer));
+}
+const withoutToken = (headers) => Object.fromEntries(Object.entries(headers).filter(([name]) => name !== "x-eh-visitor-token"));
+async function post(body, path = "/api/crm-inquiry", siteBase = base) {
+  return fetch(siteBase + path, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -54,13 +136,7 @@ function draft(form_key, contact, answers) {
 }
 
 try {
-  let ready = false;
-  for (let n = 0; n < 80; n++) {
-    if (site.exitCode !== null) throw Error(siteOutput);
-    try { const response = await fetch(base + "/contact"); if (response.ok) { ready = true; break; } } catch { /* Starting. */ }
-    await delay(250);
-  }
-  assert.ok(ready, `Next server did not start: ${siteOutput}`);
+  await waitForSite(signedSite, base);
 
   for (const path of ["/contact", "/anglais-casablanca", "/anglais-en-ligne", "/mise-a-niveau"]) {
     const page = await fetch(base + path);
@@ -199,6 +275,13 @@ try {
   assert.equal((await post({ ...cases[0], request_key: randomUUID() })).status, 422);
   mode = "rate";
   assert.equal((await post({ ...cases[0], request_key: randomUUID() })).status, 429);
+  let rateLog;
+  for (let n = 0; n < 20 && !rateLog; n++) {
+    rateLog = signedSite.output.split("\n").find((line) => line.includes("[crm-inquiry] upstream 429"));
+    if (!rateLog) await delay(100);
+  }
+  // Only the form key is logged: no contact data, IP or visitor token.
+  assert.equal(rateLog, "[crm-inquiry] upstream 429 { form_key: 'general_contact_v1' }");
   mode = "fail-once";
   failedOnce = false;
   const retryInput = { ...cases[0], request_key: randomUUID() };
@@ -229,8 +312,35 @@ try {
   assert.equal(proof.valid, true);
   assert.match(proof.eventId, /^[0-9a-f-]{36}$/);
   assert.ok(tracked.headers.get("set-cookie")?.includes("eh_inquiry_receipt=;"));
+  for (const sent of received) assertSignedVisitor(sent);
+
+  // Without a usable proxy secret the header is omitted and nothing else changes.
+  const reference = { ...cases[1], request_key: randomUUID() };
+  const signedResponse = await post(reference);
+  assert.equal(signedResponse.status, 200);
+  const signedRequest = received.at(-1);
+  assertSignedVisitor(signedRequest);
+  for (const [index, secret] of [undefined, "x".repeat(31)].entries()) {
+    const unsignedBase = `http://127.0.0.1:${unsignedSitePorts[index]}`;
+    const unsignedSite = startSite(unsignedSitePorts[index], secret);
+    unsignedSites.push(unsignedSite);
+    await waitForSite(unsignedSite, unsignedBase);
+    const response = await post(reference, "/api/crm-inquiry", unsignedBase);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { success: true });
+    assert.ok(response.headers.get("set-cookie")?.includes("eh_inquiry_receipt="));
+    const sent = received.at(-1);
+    assert.equal(sent.token, undefined);
+    assert.equal("x-eh-visitor-token" in sent.headers, false);
+    assert.deepEqual(sent.body, signedRequest.body);
+    assert.deepEqual(sent.headers, withoutToken(signedRequest.headers));
+    const beforeUnsignedTrap = received.length;
+    assert.equal((await post({ ...cases[0], request_key: randomUUID(), website: "filled-by-bot" }, "/api/crm-inquiry", unsignedBase)).status, 200);
+    assert.equal(received.length, beforeUnsignedTrap);
+  }
   console.log("CRM inquiry mock integration: passed");
 } finally {
-  site.kill("SIGTERM");
+  signedSite.child.kill("SIGTERM");
+  for (const unsignedSite of unsignedSites) unsignedSite.child.kill("SIGTERM");
   mock.close();
 }

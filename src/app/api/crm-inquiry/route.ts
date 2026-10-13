@@ -3,6 +3,7 @@ import { prepareInquiry } from "@/lib/crm/contract";
 import { makeReceipt, receiptCookie } from "@/lib/crm/receipt";
 import { sendExistingMetaLead } from "@/lib/crm/legacy-meta";
 import { runLegacyMetaCompatibility } from "@/lib/crm/meta-switch";
+import { visitorTokenHeaders } from "@/lib/crm/visitor-signature";
 
 const canonicalOrigin = "https://www.english-hills.com";
 
@@ -33,7 +34,11 @@ export async function POST(req: NextRequest) {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Origin: canonicalOrigin },
+      headers: {
+        "Content-Type": "application/json", Origin: canonicalOrigin,
+        // Signed visitor IP for the CRM's per-visitor rate limit; omitted when unconfigured.
+        ...visitorTokenHeaders(req, prepared.value.request_key, process.env.CRM_WEBSITE_PROXY_SECRET),
+      },
       body: JSON.stringify(prepared.value),
       cache: "no-store",
       signal: AbortSignal.timeout(7000),
@@ -54,7 +59,11 @@ export async function POST(req: NextRequest) {
       }
       return accepted;
     }
-    if (response.status === 429) return NextResponse.json({ error: "Trop de tentatives." }, { status: 429 });
+    if (response.status === 429) {
+      // Logs only the form key: no contact data, IP or visitor token.
+      console.warn("[crm-inquiry] upstream 429", { form_key: prepared.value.form_key });
+      return NextResponse.json({ error: "Trop de tentatives." }, { status: 429 });
+    }
     if (response.status === 400 || response.status === 403 || response.status === 422) {
       return NextResponse.json({ error: "Vérifiez vos informations." }, { status: 422 });
     }

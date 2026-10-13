@@ -19,6 +19,11 @@ export type InquiryDraft = {
   attribution?: Attribution;
 };
 
+// /contact-camp logs the click and redirects to the school's WhatsApp
+// server-side, so the WhatsApp URL never ships to the browser.
+export const rateLimitHelp = { text: "Trop de tentatives. Réessayez plus tard ou", link: "écrivez-nous sur WhatsApp", href: "/contact-camp" };
+export const rateLimitMessage = `${rateLimitHelp.text} ${rateLimitHelp.link}.`;
+
 export class InquiryError extends Error {
   constructor(public readonly kind: "validation" | "rate_limit" | "temporary", message: string) { super(message); }
 }
@@ -45,7 +50,7 @@ export function useInquirySubmission() {
       if (!response.ok) {
         const kind = response.status === 400 || response.status === 422 ? "validation"
           : response.status === 429 ? "rate_limit" : "temporary";
-        const message = kind === "rate_limit" ? "Trop de tentatives. Veuillez réessayer plus tard."
+        const message = kind === "rate_limit" ? rateLimitMessage
           : kind === "validation" ? "Vérifiez vos informations et réessayez."
           : "Le service est temporairement indisponible. Réessayez avec les mêmes informations.";
         throw new InquiryError(kind, message);
