@@ -11,6 +11,7 @@ type TurnstileApi = {
     action: string;
     execution: "execute";
     appearance: "always";
+    size: "normal" | "compact";
     callback: (token: string) => void;
     "error-callback": () => void;
     "expired-callback": () => void;
@@ -60,6 +61,8 @@ export const InquiryTurnstile = forwardRef<InquiryTurnstileHandle>(function Inqu
         action: CRM_TURNSTILE_ACTION,
         execution: "execute",
         appearance: "always",
+        // The normal widget is 300px wide; narrow phones get the 150px compact one.
+        size: container.current.clientWidth < 300 ? "compact" : "normal",
         callback: (token) => {
           const current = pending.current;
           pending.current = null;

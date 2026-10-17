@@ -103,16 +103,16 @@ export function Header() {
           </div>
           <div className="flex items-center gap-3">
             <a
-              href={PUBLIC_FORM_URL}
-              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 border-2 border-navy-primary text-navy-primary bg-transparent hover:bg-navy-primary hover:text-white"
-            >
-              S&apos;inscrire
-            </a>
-            <a
               href={ADMIN_LOGIN_URL}
-              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+              className="inline-flex items-center justify-center font-medium px-3 py-3 text-foreground hover:text-primary transition-colors duration-200"
             >
               Se connecter
+            </a>
+            <a
+              href={PUBLIC_FORM_URL}
+              className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
+            >
+              S&apos;inscrire
             </a>
           </div>
         </nav>
@@ -178,14 +178,14 @@ export function Header() {
           <div className="flex flex-col gap-3">
             <a
               href={PUBLIC_FORM_URL}
-              className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 border-2 border-navy-primary text-navy-primary bg-transparent hover:bg-navy-primary hover:text-white"
+              className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
               onClick={() => setMobileMenuOpen(false)}
             >
               S&apos;inscrire
             </a>
             <a
               href={ADMIN_LOGIN_URL}
-              className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-navy-primary text-white hover:bg-navy-primary/90 shadow-sm"
+              className="inline-flex items-center justify-center font-medium w-full px-6 py-3 text-lg text-foreground hover:text-primary transition-colors duration-200"
               onClick={() => setMobileMenuOpen(false)}
             >
               Se connecter

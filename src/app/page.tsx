@@ -104,8 +104,8 @@ export default function Home() {
 
           <div className="flex flex-col md:flex-row justify-between items-end mb-32 border-b border-gray-200 pb-12">
             <div className="max-w-2xl">
-              <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-navy-primary mb-4">Méthodologie</h2>
-              <h3 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Apprendre en faisant.</h3>
+              <p className="text-sm font-bold tracking-[0.2em] uppercase text-navy-primary mb-4">Méthodologie</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Apprendre en faisant.</h2>
             </div>
             <p className="text-lg text-gray-500 max-w-md mt-6 md:mt-0 text-left md:text-right">
               On rejette totalement les cours magistraux passifs. À la place, on garantit la production langagière à travers un cycle structuré d&apos;exploration, d&apos;action et de communication.
@@ -125,7 +125,7 @@ export default function Home() {
 
                 <div className={`relative z-10 max-w-md bg-white/70 backdrop-blur-xl p-8 md:p-12 border border-white/50 shadow-2xl ${i % 2 === 0 ? 'mr-auto ml-4 md:ml-12' : 'ml-auto mr-4 md:mr-12'}`}>
                   <span className="text-xs font-bold tracking-widest uppercase text-red-accent mb-4 block">{step.subtitle}</span>
-                  <h4 className="text-2xl md:text-3xl font-bold text-navy-deep mb-4">{step.title}</h4>
+                  <h3 className="text-2xl md:text-3xl font-bold text-navy-deep mb-4">{step.title}</h3>
                   <p className="text-gray-600 leading-relaxed md:text-lg">{step.desc}</p>
 
                   <div className="mt-8 flex items-center gap-4 text-xs font-bold tracking-widest uppercase text-navy-primary group-hover:text-red-accent transition-colors duration-300">
@@ -149,7 +149,7 @@ export default function Home() {
             <div className="flex items-center gap-6 mb-12">
               <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Programmes pour les enfants</h2>
               <div className="h-px bg-gray-200 flex-1 hidden sm:block"></div>
-              <span className="text-sm font-medium tracking-widest uppercase text-gray-400">6–17 ans</span>
+              <span className="text-sm font-medium tracking-widest uppercase text-gray-500">6–17 ans</span>
             </div>
 
             <p className="text-xl text-gray-500 max-w-3xl mb-16 leading-relaxed">
@@ -198,7 +198,7 @@ export default function Home() {
             <div className="flex items-center gap-6 mb-12">
               <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Programmes pour adultes</h2>
               <div className="h-px bg-gray-200 flex-1 hidden sm:block"></div>
-              <span className="text-sm font-medium tracking-widest uppercase text-gray-400">Tous niveaux</span>
+              <span className="text-sm font-medium tracking-widest uppercase text-gray-500">Tous niveaux</span>
             </div>
 
             <p className="text-xl text-gray-500 max-w-3xl mb-16 leading-relaxed">
@@ -242,7 +242,7 @@ export default function Home() {
                 <div className="mb-6 mt-auto">
                   <span className="text-xl font-bold text-foreground">Tarif sur demande</span>
                 </div>
-                <Button href="/programs/business-english" variant="primary-red" className="w-full rounded-full mt-auto">Découvrir</Button>
+                <Button href="/programs/business-english" variant="primary-red" className="w-full rounded-full mt-auto">Voir le programme</Button>
               </div>
 
               <div className="border border-gray-200 p-10 rounded-3xl hover:-translate-y-1 hover:border-navy-primary/30 hover:shadow-[0_20px_40px_-15px_var(--color-navy-primary)] transition-all flex flex-col bg-white">
@@ -261,7 +261,7 @@ export default function Home() {
                 <div className="mb-6 mt-auto">
                   <span className="text-xl font-bold text-foreground">Tarif sur demande</span>
                 </div>
-                <Button href="/programs/short-courses" variant="secondary-navy" className="w-full rounded-full mt-auto">Voir les options</Button>
+                <Button href="/programs/short-courses" variant="secondary-navy" className="w-full rounded-full mt-auto">Voir le programme</Button>
               </div>
 
             </div>
@@ -306,7 +306,7 @@ export default function Home() {
       {/* Évaluation par les projets */}
       <section className="py-0 flex flex-col lg:flex-row min-h-[800px]">
         <div className="w-full lg:w-1/2 relative min-h-[400px]">
-          <Image src="/diverse_learners_1775450286839.png" alt="Apprenants English Hills" fill className="object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
+          <Image src="/diverse_learners_1775450286839.png" alt="Apprenants English Hills" fill className="object-cover" />
         </div>
         <div className="w-full lg:w-1/2 bg-surface p-12 lg:p-24 flex items-center">
           <div className="max-w-xl">
@@ -415,8 +415,8 @@ export default function Home() {
       <section className="py-32 bg-white flex flex-col justify-center">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center mb-20">
-            <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-red-accent mb-4">FAQ</h2>
-            <h3 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-6">Questions fréquentes</h3>
+            <p className="text-sm font-bold tracking-[0.2em] uppercase text-navy-primary mb-4">FAQ</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-6">Questions fréquentes</h2>
             <p className="text-lg text-gray-500 max-w-2xl mx-auto">
               Tout ce que vous devez savoir avant de commencer votre parcours chez English Hills.
             </p>

@@ -1,5 +1,6 @@
 import type { CrmWorkflow } from "@/lib/acquisition/workflow";
 import type { Metadata } from "next";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "@/components/ui/ContactForm";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default function ContactPage() {
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
 
-          <div>
+          <div className="min-w-0">
             <h1 className="text-4xl md:text-5xl font-bold text-navy mb-6">Contactez-nous</h1>
             <p className="text-xl text-gray-600 mb-12">
               Une question sur nos programmes, une demande de formation entreprise ? On est là pour vous aider.
@@ -26,7 +27,7 @@ export default function ContactPage() {
             <div className="space-y-8 mb-12">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                  <span className="text-xl">📍</span>
+                  <MapPin className="w-5 h-5 text-navy-primary" />
                 </div>
                 <div>
                   <h2 className="font-bold text-navy text-lg">Adresse</h2>
@@ -40,7 +41,7 @@ export default function ContactPage() {
 
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                  <span className="text-xl">📞</span>
+                  <Phone className="w-5 h-5 text-navy-primary" />
                 </div>
                 <div>
                   <h2 className="font-bold text-navy text-lg">Téléphone & WhatsApp</h2>
@@ -65,7 +66,7 @@ export default function ContactPage() {
 
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                  <span className="text-xl">✉️</span>
+                  <Mail className="w-5 h-5 text-navy-primary" />
                 </div>
                 <div>
                   <h2 className="font-bold text-navy text-lg">E-mail</h2>
@@ -77,7 +78,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="bg-surface rounded-3xl p-8 md:p-10">
+          <div className="min-w-0 bg-surface rounded-3xl p-5 sm:p-8 md:p-10">
             <h2 className="text-2xl font-bold text-navy mb-6">Envoyez-nous un message</h2>
             <ContactForm campaign={{ destination: "crm", formSchema: "general_contact_v1", visibleQuestions: ["program_interest", "message"] } satisfies CrmWorkflow} />
           </div>
