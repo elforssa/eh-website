@@ -14,7 +14,7 @@ export function Footer() {
                 alt="English Hills"
                 width={400}
                 height={160}
-                className="h-14 md:h-20 w-auto object-contain"
+                className="h-14 md:h-20 w-auto object-contain brightness-0 invert"
               />
             </Link>
             <p className="text-gray-400 mb-8 font-light text-sm leading-relaxed">
@@ -87,7 +87,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500 font-medium tracking-wide">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-400 font-medium tracking-wide">
           <p>© {new Date().getFullYear()} English Hills Language Center.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link>
