@@ -55,7 +55,8 @@ export function AdultClassesLeadForm({ campaign }: { campaign: CrmWorkflow & { f
     const digits = form.phone.replace(/\D/g, "").length;
     if (!form.phone.trim()) next.phone = "Votre numéro de téléphone est requis.";
     else if (digits < 9 || digits > 15) next.phone = "Veuillez entrer un numéro valide.";
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = "Veuillez entrer une adresse e-mail valide.";
+    if (!form.email.trim()) next.email = "Votre adresse e-mail est requise.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = "Veuillez entrer une adresse e-mail valide.";
     if (!form.formule) next.formule = "Veuillez choisir une formule.";
     if (!form.currentLevel) next.currentLevel = "Veuillez choisir votre niveau.";
     if (!form.commute) next.commute = "Veuillez répondre à cette question.";
@@ -79,10 +80,9 @@ export function AdultClassesLeadForm({ campaign }: { campaign: CrmWorkflow & { f
 
     setSubmitting(true);
     try {
-      const email = form.email.trim();
       const accepted = await inquiry.submit({
         form_key: crmFormKey(campaign),
-        contact: { name: form.name, phone: form.phone, ...(email ? { email } : {}) },
+        contact: { name: form.name, phone: form.phone, email: form.email.trim() },
         answers: {
           program_interest: form.formule,
           current_level: form.currentLevel,
@@ -129,9 +129,9 @@ export function AdultClassesLeadForm({ campaign }: { campaign: CrmWorkflow & { f
         </div>
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-black text-navy-deep">
-            E-mail <span className="font-semibold text-gray-500">(facultatif)</span>
+            E-mail <span aria-hidden="true">*</span>
           </label>
-          <input id="email" type="email" autoComplete="email" value={form.email} onChange={handleChange}
+          <input id="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} aria-required="true"
             aria-describedby={errors.email ? "adult-email-error" : undefined} className={inputClass(Boolean(errors.email))} placeholder="vous@email.com" />
           {errors.email && <p id="adult-email-error" className="text-xs font-medium text-red-600">{errors.email}</p>}
         </div>
