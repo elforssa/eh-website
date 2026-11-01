@@ -94,8 +94,8 @@ export default function AdultClassesLandingPage() {
               ))}
             </ul>
 
-            <div className="relative mt-9 hidden aspect-[16/10] max-w-3xl overflow-hidden rounded-2xl border border-gray-200 lg:block">
-              <Image src="/hero_classroom_students_1775450226096.png" alt="Adultes en conversation pendant un cours d'anglais" fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
+            <div className="relative mt-9 hidden aspect-[4/3] max-w-3xl overflow-hidden rounded-2xl border border-gray-200 lg:block">
+              <Image src="/cours-adultes-classe.webp" alt="Adultes en conversation pendant un cours d'anglais" fill className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" />
             </div>
           </div>
 
