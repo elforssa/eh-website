@@ -165,7 +165,7 @@ export default function AdultClassesLandingPage() {
           <a href="#formulaire" className="mt-8 inline-flex items-center justify-center rounded-full bg-red-accent px-8 py-4 text-base font-black text-white shadow-lg shadow-red-accent/20 transition-colors hover:bg-[#9d1726]">
             Réserver mon test de niveau gratuit
           </a>
-          <p className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-gray-600">
+          <p className="mt-6 flex items-center justify-center gap-2 text-sm font-bold text-gray-600">
             <MapPin className="h-4 w-4 text-red-accent" aria-hidden="true" />
             English Hills — Quartier Almaz, Casablanca
           </p>
