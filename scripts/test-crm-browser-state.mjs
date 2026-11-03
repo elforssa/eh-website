@@ -38,6 +38,32 @@ const second = readAttribution(72 * day);
 assert.equal(second.utm_source, "second");
 assert.equal(second.utm_campaign, undefined);
 assert.equal(second.landing_page, "https://www.english-hills.com/contact");
+// Real Meta ad links: {{campaign.id}}, {{adset.id}}, {{ad.id}} are 18-digit IDs and must survive.
+window.location = {
+  search: "?utm_source=facebook&utm_medium=paid&utm_campaign=120252300675060313&utm_term=120252300676090313&utm_content=120252310156940313&fbclid=IwZXh0bgNhZW0BMABhZGlk",
+  href: "https://www.english-hills.com/cours-anglais-adultes?utm_campaign=120252300675060313",
+};
+const meta = readAttribution(80 * day);
+assert.equal(meta.utm_campaign, "120252300675060313");
+assert.equal(meta.utm_term, "120252300676090313");
+assert.equal(meta.utm_content, "120252310156940313");
+assert.equal(meta.fbclid, "IwZXh0bgNhZW0BMABhZGlk");
+assert.equal(meta.landing_page, "https://www.english-hills.com/cours-anglais-adultes");
+// Phone numbers and e-mails are still dropped, including in the ID fields and in utm_source.
+memory.clear(); // no stored campaign to carry over
+window.location = {
+  search: "?utm_source=212612345678&utm_campaign=%2B212%20612%20345%20678&utm_term=0612345678&utm_content=someone%40example.com",
+  href: "https://www.english-hills.com/cours-anglais-adultes",
+};
+const personal = readAttribution(81 * day);
+assert.equal(personal.utm_source, undefined);
+assert.equal(personal.utm_campaign, undefined);
+assert.equal(personal.utm_term, undefined);
+assert.equal(personal.utm_content, undefined);
+// A 15-digit value (longest possible phone number) is not treated as a Meta ID.
+memory.clear();
+window.location = { search: "?utm_campaign=212612345678901", href: "https://www.english-hills.com/cours-anglais-adultes" };
+assert.equal(readAttribution(82 * day).utm_campaign, undefined);
 assert.equal(safePageUrl("https://www.english-hills.com/anglais-enfants?email=private@example.com"), "https://www.english-hills.com/anglais-enfants");
 assert.equal(safePageUrl("https://www.english-hills.com/212600000000?x=1"), "https://www.english-hills.com/");
 

@@ -139,7 +139,7 @@ traffic from the updated forms.
 
 ## Attribution and privacy
 
-Only observed supported attribution keys are sent. Campaign identifiers are
+Only observed supported attribution keys are sent. Campaign values that look like an e-mail or a phone number are dropped; the exception is a plain 16–20 digit value in `utm_campaign`, `utm_term` or `utm_content`, which is a Meta ID from `{{campaign.id}}`, `{{adset.id}}` or `{{ad.id}}` (longer than any phone number). Ad links use `utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.id}}&utm_term={{adset.id}}&utm_content={{ad.id}}`. Campaign identifiers are
 retained in browser storage for 30 days; a new campaign replaces the old
 campaign values. Stored URLs have query strings removed; same-site simple
 single-segment campaign paths are retained, while external, complex, and
