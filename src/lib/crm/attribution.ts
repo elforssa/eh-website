@@ -26,6 +26,18 @@ export function safePageUrl(raw: string | undefined | null): string | undefined 
   }
 }
 
+// Emails and phone-like digit runs are dropped from campaign values. Meta's
+// {{campaign.id}}, {{adset.id}} and {{ad.id}} are 16-20 plain digits, longer
+// than any phone number (E.164 allows 15), so they are kept for these keys.
+const metaIdKeys = new Set<string>(["utm_campaign", "utm_term", "utm_content"]);
+const metaId = /^\d{16,20}$/;
+export function isMetaIdUtm(key: string, value: string) {
+  return metaIdKeys.has(key) && metaId.test(value);
+}
+function looksPersonal(value: string) {
+  return /[^\s@]+@[^\s@]+|(?:\+?\d[\s().-]*){9,}/.test(value);
+}
+
 function readCookie(name: string): string | undefined {
   return document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))?.slice(name.length + 1) || undefined;
 }
@@ -35,7 +47,7 @@ export function readAttribution(now = Date.now()): Attribution {
   const fresh: Attribution = {};
   for (const key of campaignKeys) {
     const value = params.get(key);
-    if (value && !/[^\s@]+@[^\s@]+|(?:\+?\d[\s().-]*){9,}/.test(value)) fresh[key] = value.slice(0, 500);
+    if (value && (isMetaIdUtm(key, value) || !looksPersonal(value))) fresh[key] = value.slice(0, 500);
   }
 
   let stored: { at: number; values: Attribution } | undefined;
