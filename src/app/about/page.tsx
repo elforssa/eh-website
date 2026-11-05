@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ContactQuickLinks } from "@/components/ui/ContactQuickLinks";
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -45,12 +47,13 @@ export default function AboutPage() {
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
             Que vous soyez un professionnel du couloir d&apos;affaires de Casablanca ou un jeune apprenant qui commence son parcours, votre place est ici.
           </p>
-          <a
-            href="https://admin.english-hills.com/inscription"
+          <Link
+            href="/contact"
             className="inline-flex items-center justify-center font-medium rounded-lg text-lg px-8 py-4 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
           >
-            S&apos;inscrire maintenant
-          </a>
+            Nous contacter
+          </Link>
+          <ContactQuickLinks tone="dark" className="justify-center mt-6" />
         </div>
 
       </div>

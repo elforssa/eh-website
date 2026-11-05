@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ContactQuickLinks } from "@/components/ui/ContactQuickLinks";
 
 export const metadata: Metadata = {
   title: "Business English | English Hills Language Center",
@@ -77,12 +79,13 @@ export default function BusinessEnglishPage() {
                 </div>
               </div>
 
-              <a
-                href="https://admin.english-hills.com/inscription"
+              <Link
+                href="/contact"
                 className="inline-flex items-center justify-center font-medium rounded-lg px-6 py-3 w-full transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
               >
-                S&apos;inscrire
-              </a>
+                Nous contacter
+              </Link>
+              <ContactQuickLinks tone="light" showVisit={false} className="justify-center mt-4" />
             </div>
           </div>
         </div>

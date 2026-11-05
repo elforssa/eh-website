@@ -27,12 +27,10 @@ export function EnrollmentCTA() {
           Parler à un conseiller
         </a>
         <a
-          href="https://admin.english-hills.com/inscription?s=galerie-cta"
-          target="_blank"
-          rel="noopener"
+          href="/contact"
           className="w-full rounded-lg border border-camp-cream px-6 py-3 font-camp-sans font-semibold text-camp-cream transition-colors hover:bg-camp-cream/10 sm:w-auto"
         >
-          S&apos;inscrire en ligne
+          Nous contacter
         </a>
       </div>
     </section>
