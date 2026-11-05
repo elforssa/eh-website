@@ -1,5 +1,6 @@
 import { CheckCircle2, Rocket } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Programmes Enfants & Juniors | English Hills Language Center",
@@ -46,12 +47,12 @@ export default function KidsProgramsPage() {
               <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" /><span className="text-gray-600">Accès aux plateformes numériques</span></li>
             </ul>
 
-            <a
-              href="https://admin.english-hills.com/inscription"
+            <Link
+              href="/contact"
               className="inline-flex items-center justify-center font-medium rounded-full px-6 py-4 w-full transition-colors duration-200 bg-transparent border-2 border-navy-primary text-navy-primary hover:bg-navy-primary hover:text-white shadow-sm"
             >
-              S&apos;inscrire en Standard
-            </a>
+              Nous contacter
+            </Link>
           </div>
 
           {/* Formule Intensive */}
@@ -78,12 +79,12 @@ export default function KidsProgramsPage() {
               <li className="flex gap-3"><CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" /><span className="text-gray-300">Progression plus rapide entre les modules</span></li>
             </ul>
 
-            <a
-              href="https://admin.english-hills.com/inscription"
+            <Link
+              href="/contact"
               className="inline-flex items-center justify-center font-medium rounded-full px-6 py-4 w-full text-white transition-colors duration-200 bg-red-accent hover:bg-red-accent/90 shadow-sm"
             >
-              S&apos;inscrire en Intensif
-            </a>
+              Nous contacter
+            </Link>
           </div>
 
         </div>

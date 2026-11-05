@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { FaqAccordion } from "@/components/ui/FaqAccordion";
 import Link from "next/link";
+import { ContactQuickLinks } from "@/components/ui/ContactQuickLinks";
 
 const faqs = [
   {
@@ -38,16 +39,17 @@ export default function Home() {
                 Là où la technologie de pointe rencontre l&apos;apprentissage par projets — pour un anglais captivant, efficace et vraiment fun, à tout âge.
               </p>
               <div className="flex flex-col sm:flex-row gap-6">
-                <a
-                  href="https://admin.english-hills.com/inscription"
+                <Link
+                  href="/contact"
                   className="inline-flex items-center justify-center font-medium rounded-full text-lg px-8 py-4 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
                 >
-                  S&apos;inscrire maintenant
-                </a>
+                  Nous contacter
+                </Link>
                 <Button href="#programs" variant="secondary-navy" className="text-lg px-8 py-4 rounded-full">
                   Nos programmes
                 </Button>
               </div>
+              <ContactQuickLinks className="mt-6" />
             </div>
 
             <div className="relative h-[400px] md:h-[450px] lg:h-[500px] w-full rounded-2xl overflow-hidden bg-surface">
@@ -367,13 +369,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex justify-center mt-20">
-            <a
-              href="https://admin.english-hills.com/inscription"
+          <div className="flex flex-col items-center gap-6 mt-20">
+            <Link
+              href="/contact"
               className="inline-flex items-center justify-center font-medium rounded-full px-12 py-5 text-xl transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
             >
-              S&apos;inscrire maintenant
-            </a>
+              Nous contacter
+            </Link>
+            <ContactQuickLinks className="justify-center" />
           </div>
         </div>
       </section>
@@ -435,16 +438,22 @@ export default function Home() {
             Rejoignez une communauté d&apos;apprenants qui découvrent que l&apos;anglais peut être stimulant, libérateur et à portée de main. Avec une technologie de pointe et une méthode qui a fait ses preuves.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <a
-              href="https://admin.english-hills.com/inscription"
+            <Link
+              href="/contact"
               className="inline-flex items-center justify-center font-medium rounded-full text-xl px-12 py-5 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
             >
-              S&apos;inscrire maintenant
-            </a>
-            <Button href="/contact" variant="secondary-navy" className="text-xl px-12 py-5 rounded-full">
               Nous contacter
-            </Button>
+            </Link>
+            <a
+              href="https://wa.me/212664239091"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center font-medium rounded-full text-xl px-12 py-5 transition-colors duration-200 bg-transparent border-2 border-navy-primary text-navy-primary hover:bg-navy-primary hover:text-white shadow-sm"
+            >
+              Écrire sur WhatsApp
+            </a>
           </div>
+          <ContactQuickLinks className="justify-center mt-8" />
         </div>
       </section>
 

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-const PUBLIC_FORM_URL = "https://admin.english-hills.com/inscription";
+const CONTACT_PAGE_URL = "/contact";
 const ADMIN_LOGIN_URL = "https://admin.english-hills.com";
 
 export function Header() {
@@ -108,12 +108,12 @@ export function Header() {
             >
               Se connecter
             </a>
-            <a
-              href={PUBLIC_FORM_URL}
+            <Link
+              href={CONTACT_PAGE_URL}
               className="inline-flex items-center justify-center font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
             >
-              S&apos;inscrire
-            </a>
+              Nous contacter
+            </Link>
           </div>
         </nav>
 
@@ -176,13 +176,13 @@ export function Header() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <a
-              href={PUBLIC_FORM_URL}
+            <Link
+              href={CONTACT_PAGE_URL}
               className="inline-flex items-center justify-center font-medium rounded-full w-full px-6 py-4 text-lg transition-colors duration-200 bg-red-accent text-white hover:bg-red-accent/90 shadow-sm"
               onClick={() => setMobileMenuOpen(false)}
             >
-              S&apos;inscrire
-            </a>
+              Nous contacter
+            </Link>
             <a
               href={ADMIN_LOGIN_URL}
               className="inline-flex items-center justify-center font-medium w-full px-6 py-3 text-lg text-foreground hover:text-primary transition-colors duration-200"
