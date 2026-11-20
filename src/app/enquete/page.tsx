@@ -8,6 +8,8 @@ const title = "Enquête de satisfaction – English Hills";
 const description = "Votre avis compte ! Merci de prendre quelques minutes pour évaluer votre expérience au sein de notre centre.";
 
 export const metadata: Metadata = {
+  // Absolute www URLs for og:image, so WhatsApp doesn't go through the apex → www redirect.
+  metadataBase: new URL("https://www.english-hills.com"),
   title,
   description,
   robots: { index: false, follow: false },
