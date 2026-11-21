@@ -8,8 +8,8 @@ import { trackMetaEvent } from "./metaPixelEvents";
 const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 // Routes where the pixel must not load at all (no PageView either).
-// /enquete: one-time parent survey, kept out of Meta retargeting audiences.
-const pixelDisabledPaths = new Set(["/enquete"]);
+// /enquete, /enquete-adultes: one-time surveys, kept out of Meta retargeting audiences.
+const pixelDisabledPaths = new Set(["/enquete", "/enquete-adultes"]);
 
 export function MetaPixel() {
   const pathname = usePathname();
