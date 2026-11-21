@@ -5,7 +5,6 @@ import { NEXT_GROUPS, RATING_QUESTIONS, type NextGroup } from "./constants";
 
 export type AdultSurveyRow = {
   learner_name: string;
-  level_slot: string;
   phone: string;
   image_rights: boolean;
   q1_accueil: number;
@@ -41,9 +40,6 @@ export function validateAdultSurvey(body: Record<string, unknown>): Result {
   const learnerName = text(body.learnerName, 120);
   if (learnerName.length < 2) return { ok: false, error: REQUIRED_MESSAGE, field: "learnerName" };
 
-  const levelSlot = text(body.levelSlot, 200);
-  if (levelSlot.length < 2) return { ok: false, error: REQUIRED_MESSAGE, field: "levelSlot" };
-
   const rawPhone = text(body.phone, 40);
   if (!rawPhone) return { ok: false, error: REQUIRED_MESSAGE, field: "phone" };
   const phone = normalizeSurveyPhone(rawPhone);
@@ -69,7 +65,6 @@ export function validateAdultSurvey(body: Record<string, unknown>): Result {
     ok: true,
     row: {
       learner_name: learnerName,
-      level_slot: levelSlot,
       phone,
       image_rights: imageRights,
       q1_accueil: ratings.q1Accueil!,
