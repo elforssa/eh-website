@@ -1,10 +1,15 @@
 -- Temporary one-time parent satisfaction survey (/enquete, Nov 2026).
--- Not linked to any student data. Export to CSV from the dashboard, keep the
--- image-rights answers separately, then remove everything with:
+-- Not linked to any student data. Export to CSV from the dashboard and keep the
+-- image-rights answers separately before dropping anything.
 --
+-- The rate-limit table and function below are also used by the adult survey
+-- (20261121120000_adult_survey.sql). Removal, once BOTH surveys are exported:
+--
+--   drop table public.adult_survey_responses;
+--   drop table public.parent_survey_responses;
+--   -- shared by both surveys: drop only after both tables above are gone
 --   drop function public.check_parent_survey_rate_limit(text, integer, integer);
 --   drop table public.parent_survey_rate_limits;
---   drop table public.parent_survey_responses;
 
 create extension if not exists pgcrypto;
 
