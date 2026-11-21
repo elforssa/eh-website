@@ -14,7 +14,6 @@ type Ratings = Record<RatingKey, number | null>;
 type FormState = {
   website: string;
   learnerName: string;
-  levelSlot: string;
   phone: string;
   imageRights: boolean | null;
   ratings: Ratings;
@@ -32,7 +31,6 @@ const initialRatings = Object.fromEntries(RATING_QUESTIONS.map((question) => [qu
 const initialForm: FormState = {
   website: "",
   learnerName: "",
-  levelSlot: "",
   phone: "",
   imageRights: null,
   ratings: initialRatings,
@@ -55,7 +53,7 @@ const scale = [
 const minimumTokenAgeMs = 4_500;
 const staleTokenMs = 6 * 60 * 60 * 1000;
 
-const fieldOrder = ["learnerName", "levelSlot", "phone", "imageRights", ...RATING_QUESTIONS.map((question) => question.key), "nextGroup", "reenroll"];
+const fieldOrder = ["learnerName", "phone", "imageRights", ...RATING_QUESTIONS.map((question) => question.key), "nextGroup", "reenroll"];
 
 function fieldId(field: string) {
   return `enquete-adultes-${field}`;
@@ -123,7 +121,6 @@ export function AdultSurveyForm() {
   function validate() {
     const found: Record<string, string> = {};
     if (form.learnerName.trim().length < 2) found.learnerName = REQUIRED_MESSAGE;
-    if (form.levelSlot.trim().length < 2) found.levelSlot = REQUIRED_MESSAGE;
     if (!form.phone.trim()) found.phone = REQUIRED_MESSAGE;
     else if (!normalizeSurveyPhone(form.phone)) found.phone = PHONE_MESSAGE;
     if (form.imageRights === null) found.imageRights = REQUIRED_MESSAGE;
@@ -151,7 +148,6 @@ export function AdultSurveyForm() {
         formToken: token,
         website: form.website,
         learnerName: form.learnerName,
-        levelSlot: form.levelSlot,
         phone: form.phone,
         imageRights: form.imageRights,
         ...form.ratings,
@@ -231,7 +227,6 @@ export function AdultSurveyForm() {
 
           <Section title="Section 1 : Informations générales">
             <TextField field="learnerName" label="Nom et prénom de l'apprenant(e)" value={form.learnerName} error={errors.learnerName} onChange={(value) => update("learnerName", value)} autoComplete="name" maxLength={120} />
-            <TextField field="levelSlot" label="Niveau et créneau de cours" value={form.levelSlot} error={errors.levelSlot} onChange={(value) => update("levelSlot", value)} autoComplete="off" maxLength={200} />
             <TextField field="phone" label="Téléphone" type="tel" inputMode="tel" value={form.phone} error={errors.phone} onChange={(value) => update("phone", value)} autoComplete="tel" placeholder="06 12 34 56 78" maxLength={30} />
 
             <ChoiceQuestion
