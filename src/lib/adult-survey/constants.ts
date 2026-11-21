@@ -2,7 +2,7 @@
 // Temporary one-time adult learner survey (Nov 2026).
 
 // Shown in "Souhaitez-vous vous inscrire à la prochaine session qui débutera le … ?"
-export const NEXT_SESSION_DATE = "[DATE]";
+export const NEXT_SESSION_DATE = "7 décembre";
 
 export const RATING_QUESTIONS = [
   { key: "q1Accueil", label: "De 1 à 5, quel est votre niveau de satisfaction concernant nos services d'accueil et d'accompagnement ?" },
